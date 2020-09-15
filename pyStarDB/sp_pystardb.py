@@ -1,7 +1,7 @@
 import pandas
 import re
 import argparse
-
+import os
 
 """
 Base Class for Starfile format. Will be able to handle data
@@ -141,6 +141,11 @@ class StarFile:
         self.imported_content[tag] = data
         # self.line_dict[tag]['is_loop'] = True
 
+    def update(self, tag, value, loop):
+        self.line_dict.setdefault(tag, {})['is_loop'] = loop
+        self[tag] = value
+
+
 
     def sphire_header_magic(self, tag):
         star_translation_dict = {
@@ -252,7 +257,7 @@ class StarFile:
     It is used for code compatibility for relion 3.0 format. 
     Will be exchange to a new function which will be able to write directly in new format
     """
-    def write_star_oldform(self, star_file, tags):
+    def write_star_oldform(self, out_star_file, tags):
         for idx, tag in enumerate(tags):
             if idx == 0:
                 mode = 'w'
@@ -268,13 +273,19 @@ class StarFile:
                     in enumerate(df, 1)
                     ])
 
-                with open(star_file, mode) as write:
+                with open(out_star_file, mode) as write:
                     write.write(f'{export_header}\n')
-                df.to_csv(star_file, sep='\t', header=False, index=False, mode='a')
+                df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
 
 
-    def write_star_file(self,star_file, tags):
-        import os
+    def write_star_file(self, out_star_file= None , tags = None, overwrite = False):
+
+        if out_star_file == None:
+            out_star_file = self.star_file
+
+        if tags == None:
+            tags = self.imported_content.keys()
+
         for idx, tag in enumerate(tags):
             if idx == 0:
                 mode = 'w'
@@ -283,25 +294,23 @@ class StarFile:
             df = self.imported_content[tag]
 
             try:
-                is_loop = self.line_dict['is_loop']
+                is_loop = self.line_dict[tag]['is_loop']
             except:
                 is_loop = False
 
             if is_loop:
-                if not os.path.isfile(star_file):
+                if not os.path.isfile(out_star_file):
                     export_header = '\ndata_\n\nloop_\n' + '\n'.join([
                         '{} #{}'.format(entry, idx)
                         for idx, entry
                         in enumerate(df, 1)
                         ])
 
-                    with open(star_file, mode) as write:
+                    with open(out_star_file, mode) as write:
                         write.write(f'{export_header}\n')
-                    df.to_csv(star_file, sep='\t', header=False, index=False, mode='a')
+                    df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
                 else:
-                    df.to_csv(star_file, sep='\t', header=False, index=False, mode='a')
-
-
+                    df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
 
 
 def parse_args():
