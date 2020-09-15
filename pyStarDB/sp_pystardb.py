@@ -284,6 +284,7 @@ class StarFile:
             out_star_file = self.star_file
 
         if os.path.exists(out_star_file) and overwrite == False:
+            raise FileExistsError
             return
 
         if tags == None:
