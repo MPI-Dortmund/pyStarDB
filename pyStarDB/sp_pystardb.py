@@ -7,6 +7,25 @@ import os
 Base Class for Starfile format. Will be able to handle data
 """
 class StarFile:
+    """
+    Author: Markus Stabrin
+    Annotated, 2020-07-01, Tapu Shaikh
+
+    Functions:
+        __init__() : Initializes
+        analyse_star_file(() : Determines line numbers for each block of data
+        read_tag() : Populates 'imported_content' with data
+        read_with_loop() :  Reads data when block starts with 'loop_'
+        read_without_loop() : Reads data when block doesn't start with 'loop_'
+        __getitem__() : Returns data
+        __setitem__() : Imports data
+        write_star() : Writes data to disk for specified tag(s)
+    
+    Variables:
+        star_file : Name of STAR file
+        imported_content : Data, as a pandas DataFrame
+        line_dict : (dictionary) Line numbers for each section of each block
+    """
 
     def __init__(self, star_file):
         self.star_file = star_file
@@ -24,6 +43,17 @@ class StarFile:
 
 
     def analyse_star_file(self):
+        """
+        Populates self.line_dict with line numbers for each section of each block.
+        
+        line_dict : Dictionary whose keys are a block of the STAR file, with 'data_' removed (e.g., 'data_optics' -> 'optics')
+            keys in each block:
+                block : Line numbers for entire block
+                header : Line numbers for header
+                content : Line numbers for data
+                is_loop : (boolean) Whether block starts with 'loop_'
+        """
+        
         with open(self.star_file) as read:
             content = read.read()
 
@@ -91,6 +121,10 @@ class StarFile:
             self.read_tag(tag, self.line_dict[tag])
 
     def read_tag(self, tag, line_dict):
+        """
+        Populates self.imported_content with data.
+        """
+        
         try:
             if not line_dict['is_loop']:
                 data = self.read_without_loop(line_dict)
@@ -101,6 +135,10 @@ class StarFile:
             return
 
     def read_with_loop(self, line_dict):
+        """
+        Reads data when block starts with 'loop_'.
+        """
+        
         header_names = pandas.read_csv(
             self.star_file,
             usecols=[0],
@@ -123,6 +161,10 @@ class StarFile:
             )
 
     def read_without_loop(self, line_dict):
+        """
+        Reads data when block doesn't start with 'loop_'.
+        """
+        
         return pandas.read_csv(
             self.star_file,
             index_col=0,
@@ -258,6 +300,10 @@ class StarFile:
     Will be exchange to a new function which will be able to write directly in new format
     """
     def write_star_oldform(self, out_star_file, tags):
+        """
+        Writes data to disk for specified tag(s).
+        """
+        
         for idx, tag in enumerate(tags):
             if idx == 0:
                 mode = 'w'
@@ -360,3 +406,4 @@ if __name__ == '__main__':
     #                 star_file['optics'].loc[df_optics.index, '_rlnImagePixelSize'].iloc[0]
     #
     # star_file.write_star_oldform(args.output, ['particles'])
+    
