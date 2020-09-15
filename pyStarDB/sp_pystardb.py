@@ -283,6 +283,9 @@ class StarFile:
         if out_star_file == None:
             out_star_file = self.star_file
 
+        if os.path.exists(out_star_file) and overwrite == False:
+            return
+
         if tags == None:
             tags = self.imported_content.keys()
 
