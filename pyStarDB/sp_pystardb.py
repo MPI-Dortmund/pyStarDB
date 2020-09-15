@@ -316,6 +316,9 @@ class StarFile:
                 else:
                     df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
 
+            else:
+                df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
