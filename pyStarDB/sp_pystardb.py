@@ -304,7 +304,7 @@ class StarFile:
 
             if is_loop:
                 if not os.path.isfile(out_star_file):
-                    export_header = '\ndata_\n\nloop_\n' + '\n'.join([
+                    export_header = '\ndata_{}\n\nloop_\n'.format(tag) + '\n'.join([
                         '{} #{}'.format(entry, idx)
                         for idx, entry
                         in enumerate(df, 1)
