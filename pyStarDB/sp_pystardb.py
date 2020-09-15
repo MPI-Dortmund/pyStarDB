@@ -303,7 +303,6 @@ class StarFile:
                 is_loop = False
 
             if is_loop:
-                if not os.path.isfile(out_star_file):
                     export_header = '\ndata_{}\n\nloop_\n'.format(tag) + '\n'.join([
                         '{} #{}'.format(entry, idx)
                         for idx, entry
@@ -313,9 +312,6 @@ class StarFile:
                     with open(out_star_file, mode) as write:
                         write.write(f'{export_header}\n')
                     df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
-                else:
-                    df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
-
             else:
                 df.to_csv(out_star_file, sep='\t', header=True, index=False, mode='a')
 

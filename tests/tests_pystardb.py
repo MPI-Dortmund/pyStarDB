@@ -84,10 +84,10 @@ class MyTestCase(unittest.TestCase):
         is_equal_col1 = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
         is_equal_col2 = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
 
-        # try:
-        #     os.remove("name.star")
-        # except FileNotFoundError:
-        #     pass
+        try:
+            os.remove("name.star")
+        except FileNotFoundError:
+            pass
 
         self.assertTrue(is_equal_col1 and is_equal_col2,"Write / Read test failed")
 
