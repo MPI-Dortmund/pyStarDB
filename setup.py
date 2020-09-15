@@ -10,7 +10,7 @@ setuptools.setup(
     description="Star file python Package",
     license = "MIT",
     url="https://gitlab.gwdg.de/sphire/starfile_db.git",
-    python_requires = '>=3.7',
+    python_requires = '>=3.6',
     packages=setuptools.find_packages(),
     install_requires = [
     "pandas >= 1.0.5",
