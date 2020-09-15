@@ -114,7 +114,7 @@ class MyTestCase(unittest.TestCase):
         is_equal_col2_mytag2 = a2['_col2'].equals(c.imported_content['my_tag_2']['_col2'])
         all_is_equal = is_equal_col1_mytag and is_equal_col2_mytag and is_equal_col1_mytag2 and is_equal_col2_mytag2
         try:
-            os.remove("name.star")
+            os.remove(fname)
         except FileNotFoundError:
             pass
 
