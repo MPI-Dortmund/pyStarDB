@@ -14,7 +14,7 @@ class StarFile:
         self.line_dict = {}
         try:
             self.analyse_star_file()
-        except:
+        except :
             pass
 
         self.sphire_keys = {
@@ -317,7 +317,7 @@ class StarFile:
                     df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
 
             else:
-                df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
+                df.to_csv(out_star_file, sep='\t', header=True, index=False, mode='a')
 
 
 def parse_args():
