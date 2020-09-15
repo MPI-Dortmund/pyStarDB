@@ -58,9 +58,6 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile('name.star')
 
-        print(a)
-        print(c.imported_content)
-
         is_equal_col1 = a['_col1'].equals(c.imported_content['']['_col1'])
         is_equal_col2 = a['_col2'].equals(c.imported_content['']['_col2'])
 
