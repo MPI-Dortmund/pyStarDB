@@ -2,6 +2,7 @@ import pandas
 import re
 import argparse
 import os
+from io import StringIO
 
 """
 Base Class for Starfile format. Will be able to handle data
@@ -31,9 +32,10 @@ class StarFile:
         self.star_file = star_file
         self.imported_content = {}
         self.line_dict = {}
+        self.star_content = ''
         try:
             self.analyse_star_file()
-        except :
+        except:
             pass
 
         self.sphire_keys = {
@@ -53,10 +55,26 @@ class StarFile:
                 content : Line numbers for data
                 is_loop : (boolean) Whether block starts with 'loop_'
         """
-        
-        with open(self.star_file) as read:
-            content = read.read()
 
+        with open(self.star_file) as read:
+            # reading all the content of the star file. The reading part was modified so that
+            # it is able to read thorsten previously generated star files.
+            # They had a line space after header information thats why it was not able to read content
+            # properly . Normally this is not allowed but as people are already using it thats why
+            # we added this functionality also.
+            content = ''.join([
+                '\n{}\n'.format(_)
+                if re.match('^data_([^\s]*)\s*$', _)
+                else _
+                for _ in read.readlines()
+                if _.strip()
+            ]) + '\n'
+        self.star_content = StringIO(content)  # It makes a file out of string. Just convenient to reading
+                                               # data of star file
+
+        # WHen you deal with file objects you always need to reset the
+        # memory buffer after every read
+        self.star_content.seek(0)
         """
         Part of the code which tries to find out / match the keys starting with data_ 
         """
@@ -131,16 +149,19 @@ class StarFile:
             else:
                 data = self.read_with_loop(line_dict)
             self.imported_content[tag] = data
-        except:
+        except Exception as e:
+            print("Exception handled", e)
             return
 
     def read_with_loop(self, line_dict):
         """
         Reads data when block starts with 'loop_'.
         """
-        
+        # WHen you deal with file objects you always need to reset the
+        # memory buffer after every read
+        self.star_content.seek(0)
         header_names = pandas.read_csv(
-            self.star_file,
+            self.star_content,
             usecols=[0],
             skiprows=line_dict['header'][0] - 1,
             nrows=line_dict['header'][1] - line_dict['header'][0] + 1,
@@ -149,8 +170,10 @@ class StarFile:
             delim_whitespace=True,
             squeeze=True,
             )
+
+        self.star_content.seek(0)
         return pandas.read_csv(
-            self.star_file,
+            self.star_content,
             index_col=None,
             names=header_names,
             skiprows=line_dict['content'][0]-1,
@@ -160,13 +183,17 @@ class StarFile:
             delim_whitespace=True,
             )
 
+
+
     def read_without_loop(self, line_dict):
         """
         Reads data when block doesn't start with 'loop_'.
         """
-        
+        # WHen you deal with file objects you always need to reset the
+        # memory buffer after every read
+        self.star_content.seek(0)
         return pandas.read_csv(
-            self.star_file,
+            self.star_content,
             index_col=0,
             names=['', '0'],
             skiprows=line_dict['content'][0]-1,
@@ -326,16 +353,20 @@ class StarFile:
 
     def write_star_file(self, out_star_file= None , tags = None, overwrite = False):
 
+        # in case if the new file is not given and wants to overwrite the existing file
         if out_star_file == None:
             out_star_file = self.star_file
 
+        # if file already exists and you dont want to overwrite it
         if os.path.exists(out_star_file) and overwrite == False:
             raise FileExistsError
             return
 
+        # Gets all the tags from star database if they are not given by the user
         if tags == None:
             tags = self.imported_content.keys()
 
+        # Go through each tag and load the dataframe in df.
         for idx, tag in enumerate(tags):
             if idx == 0:
                 mode = 'w'
@@ -348,6 +379,7 @@ class StarFile:
             except:
                 is_loop = False
 
+            # if is continuous data then write the header information first and then all the data.
             if is_loop:
                     export_header = '\ndata_{}\n\nloop_\n'.format(tag) + '\n'.join([
                         '{} #{}'.format(entry, idx)
