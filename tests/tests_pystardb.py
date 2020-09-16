@@ -122,5 +122,25 @@ class MyTestCase(unittest.TestCase):
 
 
 
+    def test_linespacing_after_header(self):
+
+        a = pd.DataFrame([[0, 1], [2, 3], [2,3]], columns=['_col1', '_col2'])
+        a2 = pd.DataFrame([[4, 5], [6, 7], [3,3]], columns=['_col1', '_col2'])
+        b = pystar.StarFile('name.star')
+        b.update('my_tag', a, True)
+        b.update('my_tag_2', a2, True)
+
+        c = pystar.StarFile('../resources/name_space.star')
+        is_equal_col1_mytag = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
+        is_equal_col2_mytag = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
+        is_equal_col1_mytag2 = a2['_col1'].equals(c.imported_content['my_tag_2']['_col1'])
+        is_equal_col2_mytag2 = a2['_col2'].equals(c.imported_content['my_tag_2']['_col2'])
+        all_is_equal = is_equal_col1_mytag and is_equal_col2_mytag and is_equal_col1_mytag2 and is_equal_col2_mytag2
+
+
+        self.assertTrue(all_is_equal,"Write / Read test failed")
+
+
+
 if __name__ == '__main__':
     unittest.main()
