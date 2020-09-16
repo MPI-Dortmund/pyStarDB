@@ -129,8 +129,8 @@ class MyTestCase(unittest.TestCase):
         b = pystar.StarFile('name.star')
         b.update('my_tag', a, True)
         b.update('my_tag_2', a2, True)
-
-        c = pystar.StarFile('../resources/name_space.star')
+        starpath = os.path.join(os.path.dirname(__file__), '../resources/name_space.star')
+        c = pystar.StarFile(starpath)
         is_equal_col1_mytag = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
         is_equal_col2_mytag = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
         is_equal_col1_mytag2 = a2['_col1'].equals(c.imported_content['my_tag_2']['_col1'])
