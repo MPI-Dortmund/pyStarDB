@@ -3,6 +3,7 @@ import re
 import argparse
 import os
 from io import StringIO
+import sys
 
 """
 Base Class for Starfile format. Will be able to handle data
@@ -35,8 +36,18 @@ class StarFile:
         self.star_content = ''
         try:
             self.analyse_star_file()
-        except:
-            pass
+        except Exception as e:
+            print(str(e))
+            if str(e) == "Star file not provided or corrupted" :
+                raise e
+            elif str(e) == "No column data detected" :
+                raise e
+            elif str(e) == "'NoneType' object has no attribute 'start'":
+                raise e
+            elif str(e) == "Unable to grab the header information and column information":
+                raise e
+            else:
+                pass
 
         self.sphire_keys = {
             "_rlnMicrographName"      : "ptcl_source_image",
@@ -79,6 +90,17 @@ class StarFile:
         Part of the code which tries to find out / match the keys starting with data_ 
         """
         # https://regex101.com/r/D7O06N/1
+
+
+        data = self.star_content.read()
+        if data.find('data_') == -1 :
+            raise TypeError("Star file not provided or corrupted")
+        else:
+            pass
+        del data
+        self.star_content.seek(0)
+
+
         for tag_match in re.finditer('^data_([^\s]*)\s*$', content, re.M):
             tag = tag_match.group(1)
             self.line_dict[tag] = {
@@ -103,6 +125,10 @@ class StarFile:
                 current_content,
                 re.M
                 )
+
+            if header_match == None:
+                raise TypeError("Unable to grab the header information and column information")
+
             prev_content = content[:header_match.start() + current_flag]
             current_content = content[header_match.start() + current_flag:]
             current_flag += header_match.start()
@@ -137,6 +163,11 @@ class StarFile:
             self.line_dict[tag]['block'][1] = self.line_dict[tag]['content'][1]
 
             self.read_tag(tag, self.line_dict[tag])
+
+            if len(self.imported_content[tag].columns) == 0:
+                raise TypeError("No column data detected")
+            else:
+                pass
 
     def read_tag(self, tag, line_dict):
         """

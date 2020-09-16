@@ -140,6 +140,19 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(all_is_equal,"Write / Read test failed")
 
+    def test_wrong_file_provided(self):
+
+        with self.assertRaises(TypeError) as cm:
+            starpath = os.path.join(os.path.dirname(__file__), '../resources/TcdA1-0010_frames_sum.cbox')
+            a = pystar.StarFile(starpath)
+            self.assertEqual(cm.exception.code, 1)
+
+    def test_zero_number_of_columns(self):
+        with self.assertRaises(TypeError) as cm:
+            starpath = os.path.join(os.path.dirname(__file__), '../resources/ActinLifeAct_00072_zerocol.star')
+            a = pystar.StarFile(starpath)
+            self.assertEqual(str(cm.exception), "Unable to grab the header information and column information")
+
 
 
 if __name__ == '__main__':

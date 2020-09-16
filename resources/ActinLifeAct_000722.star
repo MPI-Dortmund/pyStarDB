@@ -38,7 +38,7 @@ _rlnCoordinateY #2
 3270.78 3120.555
 
 
-data_
+data_mogo
 
 loop_
 _rlnCoordinateXX #1 
