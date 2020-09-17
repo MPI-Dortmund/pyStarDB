@@ -12,6 +12,12 @@ import sp_pystardb as pystar
 # d = pystar.StarFile('../resources/ActinLifeAct_000722.star')
 
 # d = pystar.StarFile('../resources/TcdA1-0010_frames_sum.cbox')
-data = d.imported_content
-print("Hello")
 
+
+
+d = pystar.StarFile('../resources/ActinLifeAct_000722.star')
+
+
+
+
+pystar.StarFile('../resources/TcdA1-0154_frames_sum.cbox')

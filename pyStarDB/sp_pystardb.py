@@ -37,7 +37,6 @@ class StarFile:
         try:
             self.analyse_star_file()
         except Exception as e:
-            print(str(e))
             if str(e) == "Star file not provided or corrupted" :
                 raise
             elif str(e) == "No column data detected" :
