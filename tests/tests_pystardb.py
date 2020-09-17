@@ -54,8 +54,8 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile('name.star')
 
-        is_equal_col1 = a['_col1'].equals(c.imported_content['']['_col1'])
-        is_equal_col2 = a['_col2'].equals(c.imported_content['']['_col2'])
+        is_equal_col1 = a['_col1'].equals(c['']['_col1'])
+        is_equal_col2 = a['_col2'].equals(c['']['_col2'])
 
         try:
             os.remove("name.star")
@@ -81,8 +81,8 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile('name.star')
 
-        is_equal_col1 = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
-        is_equal_col2 = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
+        is_equal_col1 = a['_col1'].equals(c['my_tag']['_col1'])
+        is_equal_col2 = a['_col2'].equals(c['my_tag']['_col2'])
 
         try:
             os.remove("name.star")
@@ -108,10 +108,10 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile(fname)
 
-        is_equal_col1_mytag = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
-        is_equal_col2_mytag = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
-        is_equal_col1_mytag2 = a2['_col1'].equals(c.imported_content['my_tag_2']['_col1'])
-        is_equal_col2_mytag2 = a2['_col2'].equals(c.imported_content['my_tag_2']['_col2'])
+        is_equal_col1_mytag = a['_col1'].equals(c['my_tag']['_col1'])
+        is_equal_col2_mytag = a['_col2'].equals(c['my_tag']['_col2'])
+        is_equal_col1_mytag2 = a2['_col1'].equals(c['my_tag_2']['_col1'])
+        is_equal_col2_mytag2 = a2['_col2'].equals(c['my_tag_2']['_col2'])
         all_is_equal = is_equal_col1_mytag and is_equal_col2_mytag and is_equal_col1_mytag2 and is_equal_col2_mytag2
         try:
             os.remove(fname)
@@ -131,10 +131,10 @@ class MyTestCase(unittest.TestCase):
         b.update('my_tag_2', a2, True)
         starpath = os.path.join(os.path.dirname(__file__), '../resources/name_space.star')
         c = pystar.StarFile(starpath)
-        is_equal_col1_mytag = a['_col1'].equals(c.imported_content['my_tag']['_col1'])
-        is_equal_col2_mytag = a['_col2'].equals(c.imported_content['my_tag']['_col2'])
-        is_equal_col1_mytag2 = a2['_col1'].equals(c.imported_content['my_tag_2']['_col1'])
-        is_equal_col2_mytag2 = a2['_col2'].equals(c.imported_content['my_tag_2']['_col2'])
+        is_equal_col1_mytag = a['_col1'].equals(c['my_tag']['_col1'])
+        is_equal_col2_mytag = a['_col2'].equals(c['my_tag']['_col2'])
+        is_equal_col1_mytag2 = a2['_col1'].equals(c['my_tag_2']['_col1'])
+        is_equal_col2_mytag2 = a2['_col2'].equals(c['my_tag_2']['_col2'])
         all_is_equal = is_equal_col1_mytag and is_equal_col2_mytag and is_equal_col1_mytag2 and is_equal_col2_mytag2
 
 

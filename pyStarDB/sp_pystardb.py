@@ -8,7 +8,7 @@ import sys
 """
 Base Class for Starfile format. Will be able to handle data
 """
-class StarFile:
+class StarFile(dict):
     """
     Author: Markus Stabrin
     Annotated, 2020-07-01, Tapu Shaikh
@@ -31,7 +31,7 @@ class StarFile:
 
     def __init__(self, star_file):
         self.star_file = star_file
-        self.imported_content = {}
+        # self.imported_content = {}
         self.line_dict = {}
         self.star_content = ''
         try:
@@ -163,7 +163,7 @@ class StarFile:
 
             self.read_tag(tag, self.line_dict[tag])
 
-            if len(self.imported_content[tag].columns) == 0:
+            if len(self[tag].columns) == 0:
                 raise TypeError("No column data detected")
             else:
                 pass
@@ -178,7 +178,7 @@ class StarFile:
                 data = self.read_without_loop(line_dict)
             else:
                 data = self.read_with_loop(line_dict)
-            self.imported_content[tag] = data
+            self.__setitem__(tag, data)
         except Exception as e:
             print("Exception handled", e)
             return
@@ -233,16 +233,48 @@ class StarFile:
             delim_whitespace=True,
             ).transpose()
 
-    def __getitem__(self, tag):
-        return self.imported_content[tag]
-
-    def __setitem__(self, tag, data):
-        self.imported_content[tag] = data
+    # def __getitem__(self, tag):
+    #     return self.__getitem__(tag)
+    #
+    # def __setitem__(self, tag, data):
+    #     self.__setitem__(tag,  data)
         # self.line_dict[tag]['is_loop'] = True
 
     def update(self, tag, value, loop):
         self.line_dict.setdefault(tag, {})['is_loop'] = loop
         self[tag] = value
+
+
+    def get_ncolumns(self, tags= None):
+        new_tags = {}
+        if tags == None:
+            new_tags = self.keys()
+        else:
+            new_tags = [tags]
+
+        if len(new_tags) > 1 and tags is None:
+            raise Exception("More than one tags available")
+        no_of_columns = 0
+        # Go through each tag and get the number of columns.
+        for idx, tag in enumerate(new_tags):
+            no_of_columns += len(self[tag].columns)
+        return no_of_columns
+
+    def get_nrows(self, tags= None):
+        new_tags = {}
+        if tags == None:
+            new_tags = self.keys()
+        else:
+            new_tags = [tags]
+
+        if len(new_tags) > 1 and tags is None:
+            raise Exception("More than one tags available")
+        no_of_rows = 0
+        # Go through each tag and get the number of columns.
+        for idx, tag in enumerate(new_tags):
+            no_of_rows += len(self[tag].values)
+        return no_of_rows
+
 
 
 
@@ -366,7 +398,7 @@ class StarFile:
                 mode = 'w'
             else:
                 mode = 'a'
-            df = self.imported_content[tag]
+            df = self[tag]
             is_loop = self.line_dict[tag]['is_loop']
 
             if is_loop:
@@ -394,7 +426,7 @@ class StarFile:
 
         # Gets all the tags from star database if they are not given by the user
         if tags == None:
-            tags = self.imported_content.keys()
+            tags = self.keys()
 
         # Go through each tag and load the dataframe in df.
         for idx, tag in enumerate(tags):
@@ -402,7 +434,7 @@ class StarFile:
                 mode = 'w'
             else:
                 mode = 'a'
-            df = self.imported_content[tag]
+            df = self[tag]
 
             try:
                 is_loop = self.line_dict[tag]['is_loop']
