@@ -19,5 +19,4 @@ d = pystar.StarFile('../resources/ActinLifeAct_000722.star')
 
 rows = d.get_nrows(tags= 'mogo')
 
-
 pystar.StarFile('../resources/TcdA1-0154_frames_sum.cbox')

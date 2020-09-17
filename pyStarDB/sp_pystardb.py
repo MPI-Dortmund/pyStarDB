@@ -276,113 +276,6 @@ class StarFile(dict):
         return no_of_rows
 
 
-
-
-    def sphire_header_magic(self, tag):
-        star_translation_dict = {
-            "ptcl_source_image"         : "_rlnMicrographName",
-            "data_path"                 : "_rlnImageName",
-            "ptcl_source_apix"          : "_rlnDetectorPixelSize",
-            "phi"                       :  "_rlnAngleRot",
-            "theta"                     : "_rlnAngleTilt",
-            "psi"                       : "_rlnAnglePsi",
-            "voltage"                   : "_rlnVoltage",
-            "cs"                        : "_rlnSphericalAberration",
-            "bfactor"                   : "_rlnCtfBfactor",
-            "ampcont"                   : "_rlnAmplitudeContrast",
-            "apix"                      : "_rlnDetectorPixelSize",
-            "tx"                        : "_rlnOriginX",
-            "ty"                        : "_rlnOriginY",
-            "_rlnMagnification"         : "_rlnMagnification",
-            "_rlnDefocusU"              : "_rlnDefocusU",
-            "_rlnDefocusV"              : "_rlnDefocusV",
-            "_rlnDefocusAngle"          : "_rlnDefocusAngle",
-            "_rlnCoordinateX"           : "_rlnCoordinateX",
-            "_rlnCoordinateY"           : "_rlnCoordinateY"
-        }
-
-
-        for value in list(star_translation_dict.values()):
-            star_translation_dict[value] = value
-
-        key_value = 0
-        special_keys = ('ctf', 'xform.projection', 'ptcl_source_coord', 'xform.align2d')
-
-        try:
-            if tag in special_keys:
-                if tag == 'ctf':
-                    pass
-                elif tag == 'xform.projection':
-                    pass
-                elif tag == 'ptcl_source_coord':
-                    pass
-                elif tag == 'ptcl_source_coord':
-                    pass
-                elif tag == 'xform.align2d':
-                    pass
-                else:
-                    assert False, 'Missing rule for {}'.format(tag)
-            else:
-                key_value  = star_translation_dict[tag]
-        except KeyError:
-            pass
-        return key_value
-
-    def get_emdata_ctf(self, star_data):
-        # star_data = self.data[tag].iloc[idx]
-        idx_cter_astig_ang = 45 - star_data["_rlnDefocusAngle"]
-        if idx_cter_astig_ang >= 180:
-            idx_cter_astig_ang -= 180
-        else:
-            idx_cter_astig_ang += 180
-        ctfdict = {"defocus": ((star_data["_rlnDefocusU"] +
-                                star_data["_rlnDefocusV"]) / 20000),
-                   "bfactor": star_data["_rlnCtfBfactor"],
-                   "ampcont": 100 * star_data["_rlnAmplitudeContrast"],
-                   "apix": (10000 * star_data["_rlnDetectorPixelSize"]) /
-                           star_data["_rlnMagnification"],
-                   "voltage": star_data["_rlnVoltage"],
-                   "cs": star_data["_rlnSphericalAberration"],
-                   "dfdiff": ((-star_data["_rlnDefocusU"] +
-                               star_data["_rlnDefocusV"]) / 10000),
-                   "dfang": idx_cter_astig_ang
-                   }
-
-        return ctfdict
-
-    def get_emdata_transform(self, star_data):
-        trans_dict=  {
-            "type": "spider",
-            "phi": star_data["_rlnAngleRot"],
-            "theta": star_data["_rlnAngleTilt"],
-            "psi": star_data["_rlnAnglePsi"],
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "tz": 0.0,
-            "mirror": 0,
-            "scale": 1.0
-        }
-
-        return trans_dict
-
-    def get_emdata_transform_2d(self, star_data):
-        trans_dict = {
-            "type": "2d",
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "alpha": star_data["_rlnAnglePsi"],
-            "mirror": 0,
-            "scale": 1.0
-        }
-
-        return trans_dict
-
-
-
-        # import json
-        # with open('translation_dict.json') as read:
-        #     translation_dict = json.load(read)
-
     """
     A write function to convert the star file 3.1 format to 3.0 . 
     It is used for code compatibility for relion 3.0 format. 
@@ -454,6 +347,144 @@ class StarFile(dict):
                     df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
             else:
                 df.to_csv(out_star_file, sep='\t', header=True, index=False, mode='a')
+
+
+
+def sphire_header_magic(tag):
+    star_translation_dict = {
+        "ptcl_source_image"         : "_rlnMicrographName",
+        "data_path"                 : "_rlnImageName",
+        "ptcl_source_apix"          : "_rlnDetectorPixelSize",
+        "phi"                       :  "_rlnAngleRot",
+        "theta"                     : "_rlnAngleTilt",
+        "psi"                       : "_rlnAnglePsi",
+        "voltage"                   : "_rlnVoltage",
+        "cs"                        : "_rlnSphericalAberration",
+        "bfactor"                   : "_rlnCtfBfactor",
+        "ampcont"                   : "_rlnAmplitudeContrast",
+        "apix"                      : "_rlnDetectorPixelSize",
+        "tx"                        : "_rlnOriginX",
+        "ty"                        : "_rlnOriginY",
+        "_rlnMagnification"         : "_rlnMagnification",
+        "_rlnDefocusU"              : "_rlnDefocusU",
+        "_rlnDefocusV"              : "_rlnDefocusV",
+        "_rlnDefocusAngle"          : "_rlnDefocusAngle",
+        "_rlnCoordinateX"           : "_rlnCoordinateX",
+        "_rlnCoordinateY"           : "_rlnCoordinateY"
+    }
+
+
+    for value in list(star_translation_dict.values()):
+        star_translation_dict[value] = value
+
+    key_value = 0
+    special_keys = ('ctf', 'xform.projection', 'ptcl_source_coord', 'xform.align2d')
+
+    try:
+        if tag in special_keys:
+            if tag == 'ctf':
+                pass
+            elif tag == 'xform.projection':
+                pass
+            elif tag == 'ptcl_source_coord':
+                pass
+            elif tag == 'ptcl_source_coord':
+                pass
+            elif tag == 'xform.align2d':
+                pass
+            else:
+                assert False, 'Missing rule for {}'.format(tag)
+        else:
+            key_value  = star_translation_dict[tag]
+    except KeyError:
+        pass
+    return key_value
+
+def get_emdata_ctf(star_data):
+    # star_data = self.data[tag].iloc[idx]
+    idx_cter_astig_ang = 45 - star_data["_rlnDefocusAngle"]
+    if idx_cter_astig_ang >= 180:
+        idx_cter_astig_ang -= 180
+    else:
+        idx_cter_astig_ang += 180
+    ctfdict = {"defocus": ((star_data["_rlnDefocusU"] +
+                            star_data["_rlnDefocusV"]) / 20000),
+               "bfactor": star_data["_rlnCtfBfactor"],
+               "ampcont": 100 * star_data["_rlnAmplitudeContrast"],
+               "apix": (10000 * star_data["_rlnDetectorPixelSize"]) /
+                       star_data["_rlnMagnification"],
+               "voltage": star_data["_rlnVoltage"],
+               "cs": star_data["_rlnSphericalAberration"],
+               "dfdiff": ((-star_data["_rlnDefocusU"] +
+                           star_data["_rlnDefocusV"]) / 10000),
+               "dfang": idx_cter_astig_ang
+               }
+
+    return ctfdict
+
+def get_emdata_ctf(star_data):
+    # star_data = self.data[tag].iloc[idx]
+    idx_cter_astig_ang = 45 - star_data["_rlnDefocusAngle"]
+    if idx_cter_astig_ang >= 180:
+        idx_cter_astig_ang -= 180
+    else:
+        idx_cter_astig_ang += 180
+    ctfdict = {"defocus": ((star_data["_rlnDefocusU"] +
+                            star_data["_rlnDefocusV"]) / 20000),
+               "bfactor": star_data["_rlnCtfBfactor"],
+               "ampcont": 100 * star_data["_rlnAmplitudeContrast"],
+               "apix": (10000 * star_data["_rlnDetectorPixelSize"]) /
+                       star_data["_rlnMagnification"],
+               "voltage": star_data["_rlnVoltage"],
+               "cs": star_data["_rlnSphericalAberration"],
+               "dfdiff": ((-star_data["_rlnDefocusU"] +
+                           star_data["_rlnDefocusV"]) / 10000),
+               "dfang": idx_cter_astig_ang
+               }
+
+    return ctfdict
+
+
+def get_emdata_transform(star_data):
+    trans_dict=  {
+        "type": "spider",
+        "phi": star_data["_rlnAngleRot"],
+        "theta": star_data["_rlnAngleTilt"],
+        "psi": star_data["_rlnAnglePsi"],
+        "tx": -star_data["_rlnOriginX"],
+        "ty": -star_data["_rlnOriginY"],
+        "tz": 0.0,
+        "mirror": 0,
+        "scale": 1.0
+    }
+
+    return trans_dict
+
+def get_emdata_transform_2d(star_data):
+    trans_dict = {
+        "type": "2d",
+        "tx": -star_data["_rlnOriginX"],
+        "ty": -star_data["_rlnOriginY"],
+        "alpha": star_data["_rlnAnglePsi"],
+        "mirror": 0,
+        "scale": 1.0
+    }
+
+    return trans_dict
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def parse_args():
