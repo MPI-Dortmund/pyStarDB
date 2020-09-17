@@ -153,6 +153,16 @@ class MyTestCase(unittest.TestCase):
             a = pystar.StarFile(starpath)
             self.assertEqual(str(cm.exception), "Unable to grab the header information and column information")
 
+    def test_throw_expection(self):
+        starpath = os.path.join(os.path.dirname(__file__), '../resources/TcdA1-0010_frames_sum.cbox')
+        got_exception = False
+        try:
+            a = pystar.StarFile(starpath)
+        except TypeError:
+            got_exception = True
+
+        self.assertTrue(got_exception)
+
 
 
 if __name__ == '__main__':
