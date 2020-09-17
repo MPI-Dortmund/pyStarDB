@@ -39,13 +39,13 @@ class StarFile:
         except Exception as e:
             print(str(e))
             if str(e) == "Star file not provided or corrupted" :
-                raise e
+                raise
             elif str(e) == "No column data detected" :
-                raise e
+                raise
             elif str(e) == "'NoneType' object has no attribute 'start'":
-                raise e
+                raise
             elif str(e) == "Unable to grab the header information and column information":
-                raise e
+                raise
             else:
                 pass
 
