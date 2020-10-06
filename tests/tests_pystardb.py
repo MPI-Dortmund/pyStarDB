@@ -164,6 +164,32 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(got_exception)
 
 
+    def test_write_global(self):
+        fname = "name.star"
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+
+        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
+        b = pystar.StarFile(fname)
+        b.update('my_tag', a, True)
+
+        version_df = pd.DataFrame([["1.0"]], columns=['_cbox_format_version'])
+        b.update('global', version_df, False)
+        b.write_star_file()
+
+        c = pystar.StarFile(fname)
+
+        global_is_written = 'global' in c
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+
+        self.assertTrue(global_is_written, "Non-loop data is not written correctly.")
+
+
 
 if __name__ == '__main__':
     unittest.main()
