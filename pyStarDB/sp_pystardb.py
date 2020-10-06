@@ -337,28 +337,21 @@ class StarFile(dict):
                 is_loop = False
 
             # if it is continuous data then write the header information first and then all the data.
+            export_header = '\ndata_{}\n'.format(tag)
+            header_loop = True
             if is_loop:
-                export_header = '\ndata_{}\n\nloop_\n'.format(tag) + '\n'.join([
+                export_header += 'loop_\n' + '\n'.join([
                     '{} #{}'.format(entry, idx)
                     for idx, entry
                     in enumerate(df, 1)
                 ])
 
-                with open(out_star_file, mode) as write:
-                    write.write(f'{export_header}\n')
-                df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
-            else:
-                if tag:
-                    export_header = '\ndata_{}\n\n'.format(tag) + '\n'.join([
-                        '{} #{}'.format(entry, idx)
-                        for idx, entry
-                        in enumerate(df, 1)
-                    ])
-                    with open(out_star_file, mode) as write:
-                        write.write(f'{export_header}\n')
-                    df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
-                else:
-                    df.to_csv(out_star_file, sep='\t', header=True, index=False, mode='a')
+                header_loop = False
+
+            with open(out_star_file, mode) as write:
+                write.write(f'{export_header}\n')
+            df.to_csv(out_star_file, sep='\t', header=header_loop, index=False, mode='a')
+
 
 
 def sphire_header_magic(tag, speical_keys=None):
