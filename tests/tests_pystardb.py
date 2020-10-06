@@ -214,10 +214,12 @@ class MyTestCase(unittest.TestCase):
         col_1_counter = 0
         col_2_counter = 0
         with open(fname) as f:
-            if '_col1' in f.read():
-                col_1_counter = col_1_counter + 1
-            if '_col2' in f.read():
-                col_2_counter = col_2_counter +1
+            lines = f.readlines()
+            for line in lines:
+                if '_col1' in line:
+                    col_1_counter = col_1_counter + 1
+                if '_col2' in line:
+                    col_2_counter = col_2_counter +1
 
         try:
             os.remove(fname)
