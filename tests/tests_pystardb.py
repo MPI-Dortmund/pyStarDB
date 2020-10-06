@@ -228,7 +228,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data block seems to be copied...")
 
-    def test_mylifesucks(self):
+    def test_non_loop_entries_on_singleline(self):
         fname = "name.star"
         try:
             os.remove(fname)

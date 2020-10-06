@@ -1,3 +1,29 @@
+# Author: Markus Stabrin 2020 (markus.stabrin@mpi-dortmund.mpg.de)
+# Author: Adnan Ali 2020 (adnan.ali@mpi-dortmund.mpg.de)
+# Author: Thorsten Wagner 2020 (thorsten.wagner@mpi-dortmund.mpg.de)
+# Author: Tapu Shaikh 2020 (tapu.shaikh@mpi-dortmund.mpg.de)
+
+# Copyright (c) 2020- Max Planck Institute of Molecular Physiology
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this program and associated documentation files (the "program"), to deal
+# in the program without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the program, and to permit persons to whom the program is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the program.
+#
+# THE PROGRAM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# PROGRAM.
+
+
 import pandas
 import re
 import argparse
@@ -13,10 +39,6 @@ Base Class for Starfile format. Will be able to handle data
 
 class StarFile(dict):
     """
-    Author: Markus Stabrin
-    Modified by : Adnan Ali
-    Annotated, 2020-07-01, Tapu Shaikh
-
     Functions:
         __init__() : Initializes
         analyse_star_file(() : Determines line numbers for each block of data
@@ -57,11 +79,24 @@ class StarFile(dict):
             "_rlnMicrographName": "ptcl_source_image",
             "_rlnDetectorPixelSize": "ptcl_source_apix",
         }
+        self.special_keys = {'ctf', 'xform.projection', 'ptcl_source_coord', 'xform.align2d', "data_path"}
+
+        self.ignored_keys = {'HostEndian', 'ImageEndian', 'MRC.maximum', 'MRC.mean', 'MRC.minimum', 'MRC.mx',
+                             'MRC.my', 'MRC.mz', 'MRC.nlabels', 'MRC.nsymbt', 'MRC.nx', 'MRC.nxstart', 'MRC.ny',
+                             'MRC.nystart', 'MRC.nz', 'MRC.nzstart', 'MRC.rms', 'MRC.xlen', 'MRC.ylen', 'MRC.zlen',
+                             'apix_x', 'apix_y', 'apix_z', 'changecount', 'datatype', 'is_complex', 'is_complex_ri',
+                             'is_complex_x', 'is_fftodd', 'is_fftpad', 'is_intensity', 'maximum', 'mean',
+                             'mean_nonzero',
+                             'minimum', 'nx', 'ny', 'nz', 'origin_x', 'origin_y', 'origin_z', 'sigma', 'sigma_nonzero',
+                             'source_n', 'source_path', 'square_sum', 'ptcl_source_coord_id', 'ptcl_source_box_id',
+                             'data_n', 'resample_ratio', 'ctf_applied', 'MRC.mapc', 'MRC.mapr',
+                             'MRC.maps', 'MRC.alpha', 'MRC.beta', 'MRC.gamma', 'MRC.ispg', 'MRC.label0',
+                             'MRC.machinestamp'
+                             }
 
     def analyse_star_file(self):
         """
         Populates self.line_dict with line numbers for each section of each block.
-
         line_dict : Dictionary whose keys are a block of the STAR file, with 'data_' removed (e.g., 'data_optics' -> 'optics')
             keys in each block:
                 block : Line numbers for entire block
@@ -275,39 +310,33 @@ class StarFile(dict):
             no_of_rows += len(self[tag].values)
         return no_of_rows
 
-    def set(self, tag, value, loop):
-        self.line_dict.setdefault(tag, {})['is_loop'] = loop
-        self[tag] = value
-
     """
     A write function to convert the star file 3.1 format to 3.0 . 
     It is used for code compatibility for relion 3.0 format. 
     Will be exchange to a new function which will be able to write directly in new format
+
+    # def write_star_oldform(self, out_star_file, tags):
+    #     #Writes data to disk for specified tag(s).#
+    # 
+    #     for idx, tag in enumerate(tags):
+    #         if idx == 0:
+    #             mode = 'w'
+    #         else:
+    #             mode = 'a'
+    #         df = self[tag]
+    #         is_loop = self.line_dict[tag]['is_loop']
+    # 
+    #         if is_loop:
+    #             export_header = '\ndata_\n\nloop_\n' + '\n'.join([
+    #                 '{} #{}'.format(entry, idx)
+    #                 for idx, entry
+    #                 in enumerate(df, 1)
+    #             ])
+    # 
+    #             with open(out_star_file, mode) as write:
+    #                 write.write(f'{export_header}\n')
+    #             df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
     """
-
-    def write_star_oldform(self, out_star_file, tags):
-        """
-        Writes data to disk for specified tag(s).
-        """
-
-        for idx, tag in enumerate(tags):
-            if idx == 0:
-                mode = 'w'
-            else:
-                mode = 'a'
-            df = self[tag]
-            is_loop = self.line_dict[tag]['is_loop']
-
-            if is_loop:
-                export_header = '\ndata_\n\nloop_\n' + '\n'.join([
-                    '{} #{}'.format(entry, idx)
-                    for idx, entry
-                    in enumerate(df, 1)
-                ])
-
-                with open(out_star_file, mode) as write:
-                    write.write(f'{export_header}\n')
-                df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
 
     def write_star_file(self, out_star_file=None, tags=None, overwrite=False):
         # in case if the new file is not given and wants to overwrite the existing file
@@ -357,9 +386,7 @@ class StarFile(dict):
             df.to_csv(out_star_file, sep='\t', header=False, index=index_loop, mode='a')
 
 
-
-
-def sphire_header_magic(tag, speical_keys=None):
+def sphire_header_magic(tag, special_keys=None):
     star_translation_dict = {
         "ptcl_source_image": "_rlnMicrographName",
         "ptcl_source_apix": "_rlnDetectorPixelSize",
@@ -385,8 +412,6 @@ def sphire_header_magic(tag, speical_keys=None):
         star_translation_dict[value] = value
 
     key_value = 0
-    special_keys = ('ctf', 'xform.projection', 'ptcl_source_coord', 'xform.align2d', "data_path")
-
     try:
         if tag in special_keys:
             if tag == 'ctf':
