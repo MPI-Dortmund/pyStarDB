@@ -190,7 +190,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(global_is_written, True)
 
     def test_data_no_copy(self):
-        fname = "name_.star"
+        fname = "name.star"
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -227,6 +227,30 @@ class MyTestCase(unittest.TestCase):
             pass
 
         self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data block seems to be copied...")
+
+    def test_mylifesucks(self):
+        fname = "name.star"
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+        b = pystar.StarFile(fname)
+
+        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
+        b.update('my_tag', a, True)
+        version_df = pd.DataFrame([["1.0", "20"]], columns=['_cbox_format_version','_cbox_format_version_2'])
+        b.update('global', version_df, False)
+        b.write_star_file()
+
+        c = pystar.StarFile(fname)
+
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+
+        global_is_written = ('global' in c) and ('global' in b)
+        self.assertTrue(global_is_written, True)
 
 
 

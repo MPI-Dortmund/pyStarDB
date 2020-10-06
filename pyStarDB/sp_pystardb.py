@@ -338,19 +338,24 @@ class StarFile(dict):
 
             # if it is continuous data then write the header information first and then all the data.
             export_header = '\ndata_{}\n'.format(tag)
-            header_loop = True
+            index_loop = True
             if is_loop:
-                export_header += 'loop_\n' + '\n'.join([
+                export_header += '\nloop_\n' + '\n'.join([
                     '{} #{}'.format(entry, idx)
                     for idx, entry
                     in enumerate(df, 1)
                 ])
 
-                header_loop = False
+                index_loop = False
+
+            else:
+                df = df.transpose()
 
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
-            df.to_csv(out_star_file, sep='\t', header=header_loop, index=False, mode='a')
+
+            df.to_csv(out_star_file, sep='\t', header=False, index=index_loop, mode='a')
+
 
 
 
