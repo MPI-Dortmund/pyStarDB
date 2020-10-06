@@ -181,7 +181,7 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile(fname)
 
-        global_is_written = 'global' in c
+        global_is_written = 'data_global' in c
         try:
             os.remove(fname)
         except FileNotFoundError:
