@@ -189,6 +189,43 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(global_is_written, "Non-loop data is not written correctly.")
 
+    def test_overwirte_data(self):
+        fname = "name_.star"
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+        b = pystar.StarFile(fname)
+
+        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
+        b.update('my_tag', a, True)
+        version_df = pd.DataFrame([["1.0"]], columns=['_cbox_format_version'])
+        b.update('global', version_df, False)
+        b.write_star_file()
+
+        c = pystar.StarFile(fname)
+        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
+        c.update('my_tag', a, True)
+        version_df = pd.DataFrame([["1.0"]], columns=['_cbox_format_version'])
+        c.update('global', version_df, False)
+
+        c.write_star_file(overwrite="True",tags=["global","my_tag"])
+
+        col_1_counter = 0
+        col_2_counter = 0
+        with open(fname) as f:
+            if '_col1' in f.read():
+                col_1_counter = col_1_counter + 1
+            if '_col2' in f.read():
+                col_2_counter = col_2_counter +1
+
+        try:
+            os.remove(fname)
+        except FileNotFoundError:
+            pass
+
+        self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data is appended and not overwritten.")
+
 
 
 if __name__ == '__main__':
