@@ -209,7 +209,7 @@ class MyTestCase(unittest.TestCase):
         version_df = pd.DataFrame([["1.0"]], columns=['_cbox_format_version'])
         c.update('global', version_df, False)
 
-        c.write_star_file(overwrite="True",tags=["global","my_tag"])
+        c.write_star_file(overwrite=True,tags=["global","my_tag"])
 
         col_1_counter = 0
         col_2_counter = 0
