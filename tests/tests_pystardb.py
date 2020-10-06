@@ -164,7 +164,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(got_exception)
 
 
-    def test_write_global(self):
+    def test_write_non_loop(self):
         fname = "name.star"
         try:
             os.remove(fname)
