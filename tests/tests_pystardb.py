@@ -189,7 +189,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(global_is_written, "Non-loop data is not written correctly.")
 
-    def test_overwirte_data(self):
+    def test_overwrite_data(self):
         fname = "name_.star"
         try:
             os.remove(fname)
