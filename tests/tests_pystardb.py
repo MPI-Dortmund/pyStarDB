@@ -181,13 +181,13 @@ class MyTestCase(unittest.TestCase):
 
         c = pystar.StarFile(fname)
 
-        global_is_written = ('data_global' in c) and ('data_my_tag' in c)
+        global_is_written = ('global' in c) and ('my_tag' in c)
         try:
             os.remove(fname)
         except FileNotFoundError:
             pass
 
-        self.assertTrue(global_is_written, "Non-loop data is not written correctly.")
+        self.assertTrue(global_is_written, True)
 
     def test_data_no_copy(self):
         fname = "name_.star"
@@ -209,7 +209,7 @@ class MyTestCase(unittest.TestCase):
         version_df = pd.DataFrame([["1.0"]], columns=['_cbox_format_version'])
         c.update('global', version_df, False)
 
-        c.write_star_file(overwrite="True",tags=["global","my_tag"])
+        c.write_star_file(overwrite=True, tags=["global","my_tag"])
 
         col_1_counter = 0
         col_2_counter = 0
