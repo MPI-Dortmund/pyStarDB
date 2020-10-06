@@ -189,7 +189,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertTrue(global_is_written, "Non-loop data is not written correctly.")
 
-    def test_overwrite_data(self):
+    def test_data_no_copy(self):
         fname = "name_.star"
         try:
             os.remove(fname)
@@ -226,7 +226,7 @@ class MyTestCase(unittest.TestCase):
         except FileNotFoundError:
             pass
 
-        self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data is appended and not overwritten.")
+        self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data block seems to be copied...")
 
 
 
