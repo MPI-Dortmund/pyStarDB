@@ -4,7 +4,7 @@
 # Author: Tapu Shaikh 2020 (tapu.shaikh@mpi-dortmund.mpg.de)
 
 # Copyright (c) 2020- Max Planck Institute of Molecular Physiology
-#
+
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this program and associated documentation files (the "program"), to deal
 # in the program without restriction, including without limitation the rights
@@ -269,6 +269,7 @@ class StarFile(dict):
         ).transpose()
 
     # Never forget the concept of Recursion otherwise you will be doomed
+    # This will hunt you forever
     # def __getitem__(self, tag):
     #     return self.__getitem__(tag)
     #
@@ -310,33 +311,41 @@ class StarFile(dict):
             no_of_rows += len(self[tag].values)
         return no_of_rows
 
-    """
-    A write function to convert the star file 3.1 format to 3.0 . 
-    It is used for code compatibility for relion 3.0 format. 
-    Will be exchange to a new function which will be able to write directly in new format
+    def __add__(self, star_to_add, out=False):
+        """
+        It is to overide the + sign for adding to StarFile class
+        e.g.    c = a+b  where a , b ,c are StarFile class
+        """
+        new_star = StarFile(None)
+        return self.add_star(star_to_add, return_cls=new_star)
 
-    # def write_star_oldform(self, out_star_file, tags):
-    #     #Writes data to disk for specified tag(s).#
-    # 
-    #     for idx, tag in enumerate(tags):
-    #         if idx == 0:
-    #             mode = 'w'
-    #         else:
-    #             mode = 'a'
-    #         df = self[tag]
-    #         is_loop = self.line_dict[tag]['is_loop']
-    # 
-    #         if is_loop:
-    #             export_header = '\ndata_\n\nloop_\n' + '\n'.join([
-    #                 '{} #{}'.format(entry, idx)
-    #                 for idx, entry
-    #                 in enumerate(df, 1)
-    #             ])
-    # 
-    #             with open(out_star_file, mode) as write:
-    #                 write.write(f'{export_header}\n')
-    #             df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
-    """
+    def __iadd__(self, star_to_add):
+        """
+        It is to overide the += sign for adding to StarFile class
+        e.g.    a+=b  where a , b  are StarFile class
+        The data of b will be copied inside the a
+        """
+        return self.add_star(star_to_add, return_cls=self)
+
+    def add_star(self, star_to_add, return_cls=None):
+        for tag in self.keys():
+            loop = self.is_loop(tag)
+            if loop:
+                try:
+                    df1 = self[tag]
+                    df2 = star_to_add[tag].copy(deep=True)
+                    new_df = pandas.concat([df1, df2],
+                                           join='inner', ignore_index=True, copy=True)
+                    return_cls[tag] = new_df
+                except KeyError:
+                    pass
+            else:
+                print("non-loop merging is not supported, Please contact admin")
+        return return_cls
+
+    def is_loop(self, tag):
+        return self.line_dict[tag]['is_loop']
+
 
     def write_star_file(self, out_star_file=None, tags=None, overwrite=False):
         # in case if the new file is not given and wants to overwrite the existing file
@@ -361,7 +370,7 @@ class StarFile(dict):
             df = self[tag]
 
             try:
-                is_loop = self.line_dict[tag]['is_loop']
+                is_loop = self.is_loop(tag)
             except:
                 is_loop = False
 
@@ -515,3 +524,32 @@ if __name__ == '__main__':
     star_file = StarFile(args.input)
 
     print(star_file)
+
+
+"""
+A write function to convert the star file 3.1 format to 3.0 . 
+It is used for code compatibility for relion 3.0 format. 
+Will be exchange to a new function which will be able to write directly in new format
+
+# def write_star_oldform(self, out_star_file, tags):
+#     #Writes data to disk for specified tag(s).#
+# 
+#     for idx, tag in enumerate(tags):
+#         if idx == 0:
+#             mode = 'w'
+#         else:
+#             mode = 'a'
+#         df = self[tag]
+#         is_loop = self.line_dict[tag]['is_loop']
+# 
+#         if is_loop:
+#             export_header = '\ndata_\n\nloop_\n' + '\n'.join([
+#                 '{} #{}'.format(entry, idx)
+#                 for idx, entry
+#                 in enumerate(df, 1)
+#             ])
+# 
+#             with open(out_star_file, mode) as write:
+#                 write.write(f'{export_header}\n')
+#             df.to_csv(out_star_file, sep='\t', header=False, index=False, mode='a')
+"""
