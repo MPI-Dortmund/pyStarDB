@@ -2,7 +2,7 @@ import unittest
 import os
 import pandas as pd
 from pyStarDB import sp_pystardb as pystar
-
+import numpy as np
 
 class MyTestCase(unittest.TestCase):
 
@@ -253,6 +253,56 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(global_is_written, True)
 
 
+    def test_pandas_merging(self):
+        fname = "name.star"
+        fname1 = "name1.star"
+
+        b = pystar.StarFile(fname)
+        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_c1', '_c2'])
+        b.update('my_tag', a, True)
+
+        c = pystar.StarFile(fname1)
+        d = pd.DataFrame([[9, 3], [3, 6]], columns=['_c1', '_c2'])
+        c.update('my_tag', d, True)
+
+        newd =  b + c
+        b += c
+        self.assertTrue(b , newd)
+
+
+
+    def test_markus_specification(self):
+
+        fname = "name.star"
+        fname1 = "name1.star"
+        x = pd.DataFrame([[0, 1], [1, 2]], columns=['_c1', '_c2'])
+        y = pd.DataFrame([[3, 4], [5, 6]], columns=['_c1', '_c2'])
+        a = pystar.StarFile(fname)
+        a.update('a', x, True)
+        b = pystar.StarFile(fname1)
+        b.update('a', y, True)
+
+        c = pystar.StarFile.add_star([a, b])
+        self.assertTrue(np.array_equal(c['a']['_c1'].values, [0, 1, 3, 5]) )
+        self.assertTrue(np.array_equal(c['a']['_c2'].values, [1, 2, 4, 6]))
+
+        d = pystar.StarFile(None)
+        pystar.StarFile.add_star([a, b], d)
+        self.assertTrue(np.array_equal(d['a']['_c1'].values, [0, 1, 3, 5]) )
+        self.assertTrue(np.array_equal(d['a']['_c2'].values, [1, 2, 4, 6]))
+
+        e = a + b
+        self.assertTrue(np.array_equal(e['a']['_c1'].values, [0, 1, 3, 5]) )
+        self.assertTrue(np.array_equal(e['a']['_c2'].values, [1, 2, 4, 6]))
+
+        f = a
+        f += b
+        self.assertTrue(np.array_equal(f['a']['_c1'].values, [0, 1, 3, 5]))
+        self.assertTrue(np.array_equal(f['a']['_c2'].values, [1, 2, 4, 6]))
+
+
 
 if __name__ == '__main__':
     unittest.main()
+
+

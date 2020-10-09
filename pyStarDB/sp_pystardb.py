@@ -277,7 +277,7 @@ class StarFile(dict):
     #     self.__setitem__(tag,  data)
     # self.line_dict[tag]['is_loop'] = True
 
-    def update(self, tag, value, loop):
+    def update(self, tag, value, loop=False):
         self[tag] = value
         self.line_dict.setdefault(tag, {})['is_loop'] = loop
 
@@ -311,13 +311,13 @@ class StarFile(dict):
             no_of_rows += len(self[tag].values)
         return no_of_rows
 
-    def __add__(self, star_to_add, out=False):
+    def __add__(self, star_to_add):
         """
         It is to overide the + sign for adding to StarFile class
         e.g.    c = a+b  where a , b ,c are StarFile class
         """
         new_star = StarFile(None)
-        return self.add_star(star_to_add, return_cls=new_star)
+        return self.add_star([self, star_to_add], return_cls=new_star)
 
     def __iadd__(self, star_to_add):
         """
@@ -325,26 +325,44 @@ class StarFile(dict):
         e.g.    a+=b  where a , b  are StarFile class
         The data of b will be copied inside the a
         """
-        return self.add_star(star_to_add, return_cls=self)
+        return self.add_star([self, star_to_add], return_cls=self)
 
-    def add_star(self, star_to_add, return_cls=None):
-        for tag in self.keys():
-            loop = self.is_loop(tag)
-            if loop:
-                try:
-                    df1 = self[tag]
-                    df2 = star_to_add[tag].copy(deep=True)
-                    new_df = pandas.concat([df1, df2],
-                                           join='inner', ignore_index=True, copy=True)
-                    return_cls[tag] = new_df
-                except KeyError:
-                    pass
-            else:
-                print("non-loop merging is not supported, Please contact admin")
+    @staticmethod
+    def add_star(star_to_add, return_cls=None):
+        if return_cls == None:
+            return_cls = StarFile(None)
+        else:
+            pass
+
+        if isinstance(star_to_add, list):
+            pass
+        else:
+            star_to_add = [star_to_add]
+
+        for tag in star_to_add[0]:
+            data = [starclass[tag].copy(deep=True)
+                    for starclass in star_to_add
+                    if starclass.is_loop(tag)
+                    ]
+
+            new_df = pandas.concat(data,
+                                   join='inner', ignore_index=True, copy=True)
+            return_cls[tag] = new_df
         return return_cls
 
     def is_loop(self, tag):
-        return self.line_dict[tag]['is_loop']
+        try:
+            return self.line_dict[tag]['is_loop']
+        except KeyError:
+            return None
+
+    def get(self, tag):
+        return self[tag].to_dict()
+
+    def set(self, tag, dicta):
+        return self.update(tag, dicta, True)
+
+
 
 
     def write_star_file(self, out_star_file=None, tags=None, overwrite=False):
@@ -370,7 +388,7 @@ class StarFile(dict):
             df = self[tag]
 
             try:
-                is_loop = self.is_loop(tag)
+                is_loop = self.line_dict[tag]['is_loop']
             except:
                 is_loop = False
 
