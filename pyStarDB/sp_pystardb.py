@@ -274,8 +274,7 @@ class StarFile(dict):
     #     return self.__getitem__(tag)
     #
     # def __setitem__(self, tag, data):
-    #     self.__setitem__(tag,  data)
-    # self.line_dict[tag]['is_loop'] = True
+    #     self.update(tag, data, True)
 
     def update(self, tag, value, loop=False):
         self[tag] = value
@@ -316,8 +315,7 @@ class StarFile(dict):
         It is to overide the + sign for adding to StarFile class
         e.g.    c = a+b  where a , b ,c are StarFile class
         """
-        new_star = StarFile(None)
-        return self.add_star([self, star_to_add], return_cls=new_star)
+        return self.add_star([self, star_to_add])
 
     def __iadd__(self, star_to_add):
         """
@@ -339,6 +337,10 @@ class StarFile(dict):
         else:
             star_to_add = [star_to_add]
 
+        star_to_add = [entry if isinstance(entry, StarFile)
+                       else StarFile(entry)
+                       for entry in star_to_add]
+
         for tag in star_to_add[0]:
             data = [starclass[tag].copy(deep=True)
                     for starclass in star_to_add
@@ -347,7 +349,7 @@ class StarFile(dict):
 
             new_df = pandas.concat(data,
                                    join='inner', ignore_index=True, copy=True)
-            return_cls[tag] = new_df
+            return_cls.update(tag, new_df, True)
         return return_cls
 
     def is_loop(self, tag):
@@ -361,9 +363,6 @@ class StarFile(dict):
 
     def set(self, tag, dicta):
         return self.update(tag, dicta, True)
-
-
-
 
     def write_star_file(self, out_star_file=None, tags=None, overwrite=False):
         # in case if the new file is not given and wants to overwrite the existing file
@@ -410,7 +409,30 @@ class StarFile(dict):
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
 
-            df.to_csv(out_star_file, sep='\t', header=False, index=index_loop, mode='a')
+            df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
+
+
+def make_star_vstack(root_dir):
+    import os
+
+    ListFiles = os.walk(root_dir)
+    filenames = []
+    foldernames = []
+    Starclass = []
+    for walk_output in ListFiles:
+        if walk_output[0] == root_dir:
+            pass
+        else:
+            foldernames.append(walk_output[0])
+            subfilenames = []
+            for file_name in walk_output[-1]:
+                if file_name.endswith('.star'):
+                    subfilenames.append(file_name)
+                    Starclass.append(StarFile(os.path.join(walk_output[0], file_name)))
+            filenames.append(subfilenames)
+
+    final_star = StarFile.add_star(Starclass)
+    final_star.write_star_file(os.path.join(root_dir, "data.star"))
 
 
 def sphire_header_magic(tag, special_keys=None):
@@ -542,7 +564,6 @@ if __name__ == '__main__':
     star_file = StarFile(args.input)
 
     print(star_file)
-
 
 """
 A write function to convert the star file 3.1 format to 3.0 . 
