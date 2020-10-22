@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name= "pyStarDB",
-    version= "0.1.0b1",
+    version= "0.1.0b2",
     author="Adnan Ali, Markus Stabrin",
     description="Star file python Package",
     license = "MIT",
