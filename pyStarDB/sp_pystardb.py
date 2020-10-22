@@ -36,7 +36,6 @@ import numpy as np
 Base Class for Starfile format. Will be able to handle data
 """
 
-
 class StarFile(dict):
     """
     Functions:
@@ -326,7 +325,7 @@ class StarFile(dict):
         return self.add_star([self, star_to_add], return_cls=self)
 
     @staticmethod
-    def add_star(star_to_add, return_cls=None):
+    def add_star(star_to_add, return_cls=None, inc_list=None, exc_list=None, step=None):
         if return_cls == None:
             return_cls = StarFile(None)
         else:
@@ -342,15 +341,40 @@ class StarFile(dict):
                        for entry in star_to_add]
 
         for tag in star_to_add[0]:
-            data = [starclass[tag].copy(deep=True)
-                    for starclass in star_to_add
-                    if starclass.is_loop(tag)
-                    ]
-
+            data = [
+                starclass[tag].iloc[starclass.get_index(starclass[tag], inc_list, exc_list, step)].copy(deep=True)
+                for starclass in star_to_add
+                if starclass.is_loop(tag)
+            ]
             new_df = pandas.concat(data,
                                    join='inner', ignore_index=True, copy=True)
             return_cls.update(tag, new_df, True)
         return return_cls
+
+    @staticmethod
+    def get_index(dataframe, inc_list=None, exc_list=None, step=None):
+
+        assert len([entry for entry in [None, None, [0, 2]] if entry is not None]) in (
+        0, 1), "You can only provide one of the options for [inc_list, exc_list, step]"
+
+        if step is not None:
+            if len(step) == 2:
+                nima = len(dataframe.index)
+            elif len(step) == 3:
+                nima = min(step[2], nrows)
+            else:
+                assert False, ('Wrong step values provided, please correct them. '
+                               'Length of the tuple needs to be 2 or 3.')
+
+            inc_list = list(range(step[0], nima - 1, step[1]))
+
+        if inc_list is not None:
+            index = dataframe.index[inc_list]
+        elif exc_list is not None:
+            index = dataframe.index.difference(exc_list)
+        else:
+            index = dataframe.index
+        return index
 
     def is_loop(self, tag):
         try:
@@ -410,29 +434,6 @@ class StarFile(dict):
                 write.write(f'{export_header}\n')
 
             df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
-
-
-def make_star_vstack(root_dir):
-    import os
-
-    ListFiles = os.walk(root_dir)
-    filenames = []
-    foldernames = []
-    Starclass = []
-    for walk_output in ListFiles:
-        if walk_output[0] == root_dir:
-            pass
-        else:
-            foldernames.append(walk_output[0])
-            subfilenames = []
-            for file_name in walk_output[-1]:
-                if file_name.endswith('.star'):
-                    subfilenames.append(file_name)
-                    Starclass.append(StarFile(os.path.join(walk_output[0], file_name)))
-            filenames.append(subfilenames)
-
-    final_star = StarFile.add_star(Starclass)
-    final_star.write_star_file(os.path.join(root_dir, "data.star"))
 
 
 def sphire_header_magic(tag, special_keys=None):
