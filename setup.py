@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name= "pyStarDB",
-    version= "0.1.0b2",
+    version= "0.1.0b3",
     author="Adnan Ali, Markus Stabrin",
     description="Star file python Package",
     license = "MIT",
@@ -13,7 +13,7 @@ setuptools.setup(
     python_requires = '>=3.6',
     packages=setuptools.find_packages(),
     install_requires = [
-    "pandas >= 1.0.5",
-    "numpy >= 1.14.5",
+    "pandas",
+    "numpy",
     ]
 )
