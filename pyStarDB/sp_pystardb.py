@@ -36,6 +36,7 @@ import numpy as np
 Base Class for Starfile format. Will be able to handle data
 """
 
+
 class StarFile(dict):
     """
     Functions:
@@ -55,6 +56,9 @@ class StarFile(dict):
     """
 
     def __init__(self, star_file):
+        """
+        :param star_file:
+        """
         self.star_file = star_file
         # self.imported_content = {}
         self.line_dict = {}
@@ -75,33 +79,47 @@ class StarFile(dict):
                 pass
 
         self.sphire_keys = {
-            "_rlnMicrographName": "ptcl_source_image",
-            "_rlnDetectorPixelSize": "ptcl_source_apix",
+            "_rlnMicrographName"    : "ptcl_source_image",
+            "_spMirror"             : "mirror",
+            "_spScale"              : "scale",
+            "_spCtfapplied"         : "ctf_applied",
+            "_spIs_complex_ri"         : "is_complex_ri",
+            "_spChangecount"           :  "changecount",
+            "_spResample_ratio"         :  "resample_ratio"
+            # "_spApixx"              : "apix_x",
+            # "_spApixy"              : "apix_y",
+            # "_spApixz"              : "apix_z",
+            # "_spNx"                 : "nx",
+            # "_spNy"                 : "ny",
+            # "_spNz"                 : "nz"
         }
-        self.special_keys = {'ctf', 'xform.projection', 'ptcl_source_coord', 'xform.align2d', "data_path"}
+        self.special_keys = {'ctf', 'xform.projection', 'ptcl_source_coord',
+                             'xform.align2d', "data_path", "originalid"}
 
         self.ignored_keys = {'HostEndian', 'ImageEndian', 'MRC.maximum', 'MRC.mean', 'MRC.minimum', 'MRC.mx',
                              'MRC.my', 'MRC.mz', 'MRC.nlabels', 'MRC.nsymbt', 'MRC.nx', 'MRC.nxstart', 'MRC.ny',
                              'MRC.nystart', 'MRC.nz', 'MRC.nzstart', 'MRC.rms', 'MRC.xlen', 'MRC.ylen', 'MRC.zlen',
-                             'apix_x', 'apix_y', 'apix_z', 'changecount', 'datatype', 'is_complex', 'is_complex_ri',
+                               'datatype', 'is_complex',  'MRC.label1',
                              'is_complex_x', 'is_fftodd', 'is_fftpad', 'is_intensity', 'maximum', 'mean',
-                             'mean_nonzero',
-                             'minimum', 'nx', 'ny', 'nz', 'origin_x', 'origin_y', 'origin_z', 'sigma', 'sigma_nonzero',
+                             'mean_nonzero', 'ptcl_source_apix', 'apix_x', 'apix_y', 'apix_z', 'nx', 'ny', 'nz',
+                             'minimum', 'origin_x', 'origin_y', 'origin_z', 'sigma', 'sigma_nonzero',
                              'source_n', 'source_path', 'square_sum', 'ptcl_source_coord_id', 'ptcl_source_box_id',
-                             'data_n', 'resample_ratio', 'ctf_applied', 'MRC.mapc', 'MRC.mapr',
+                             'data_n','MRC.mapc', 'MRC.mapr',
                              'MRC.maps', 'MRC.alpha', 'MRC.beta', 'MRC.gamma', 'MRC.ispg', 'MRC.label0',
-                             'MRC.machinestamp'
+                             'MRC.machinestamp', 'npad', 'ptcl_source_apix', 'data_source'
                              }
 
     def analyse_star_file(self):
         """
         Populates self.line_dict with line numbers for each section of each block.
-        line_dict : Dictionary whose keys are a block of the STAR file, with 'data_' removed (e.g., 'data_optics' -> 'optics')
-            keys in each block:
-                block : Line numbers for entire block
-                header : Line numbers for header
-                content : Line numbers for data
-                is_loop : (boolean) Whether block starts with 'loop_'
+        line_dict : Dictionary whose keys are a block of the STAR file, with 'data_'
+        removed (e.g., 'data_optics' -> 'optics')
+        keys in each block:
+            block : Line numbers for entire block
+            header : Line numbers for header
+            content : Line numbers for data
+            is_loop : (boolean) Whether block starts with 'loop_'
+        :return: nothing
         """
 
         with open(self.star_file) as read:
@@ -207,8 +225,10 @@ class StarFile(dict):
     def read_tag(self, tag, line_dict):
         """
         Populates self.imported_content with data.
+        :param tag:
+        :param line_dict:
+        :return:
         """
-
         try:
             if not line_dict['is_loop']:
                 data = self.read_without_loop(line_dict)
@@ -222,8 +242,10 @@ class StarFile(dict):
     def read_with_loop(self, line_dict):
         """
         Reads data when block starts with 'loop_'.
+        :param line_dict:
+        :return:
         """
-        # WHen you deal with file objects you always need to reset the
+        # When you deal with file objects you always need to reset the
         # memory buffer after every read
         self.star_content.seek(0)
         header_names = pandas.read_csv(
@@ -252,6 +274,8 @@ class StarFile(dict):
     def read_without_loop(self, line_dict):
         """
         Reads data when block doesn't start with 'loop_'.
+        :param line_dict:
+        :return:
         """
         # WHen you deal with file objects you always need to reset the
         # memory buffer after every read
@@ -276,10 +300,22 @@ class StarFile(dict):
     #     self.update(tag, data, True)
 
     def update(self, tag, value, loop=False):
+        """
+        Updates the value (int, float, dict, list, string) with a specific tag
+        :param tag: the key of the database you want to update
+        :param value:  the value you want to insert w.r.t key
+        :param loop: state whether it is a single value (False) or not (True)
+        :return: nothing
+        """
         self[tag] = value
         self.line_dict.setdefault(tag, {})['is_loop'] = loop
 
     def get_ncolumns(self, tags=None):
+        """
+        Get the number of columns either from entire database or from a specific tag
+        :param tags: if the given, then number of columns are w.r.t that tag
+        :return: number of columns
+        """
         new_tags = {}
         if tags == None:
             new_tags = self.keys()
@@ -295,6 +331,11 @@ class StarFile(dict):
         return no_of_columns
 
     def get_nrows(self, tags=None):
+        """
+        Get the number of rows either from entire database or from a specific tag
+        :param tags: if the given, then number of columns are w.r.t that tag
+        :return: number of rows
+        """
         new_tags = {}
         if tags == None:
             new_tags = self.keys()
@@ -313,6 +354,8 @@ class StarFile(dict):
         """
         It is to overide the + sign for adding to StarFile class
         e.g.    c = a+b  where a , b ,c are StarFile class
+        :param star_to_add: list of StarFile class to add
+        :return: new class
         """
         return self.add_star([self, star_to_add])
 
@@ -321,11 +364,22 @@ class StarFile(dict):
         It is to overide the += sign for adding to StarFile class
         e.g.    a+=b  where a , b  are StarFile class
         The data of b will be copied inside the a
+        :param star_to_add: list of StarFile class to add
+        :return: updated class
         """
         return self.add_star([self, star_to_add], return_cls=self)
 
     @staticmethod
     def add_star(star_to_add, return_cls=None, inc_list=None, exc_list=None, step=None):
+        """
+        Static method that performs the addition of all Starfile class
+        :param star_to_add: list of Starfile class to add
+        :param return_cls: in case if we want to overwrite/append the existing class
+        :param inc_list: List pf particles to include from the final list
+        :param exc_list: List of partocles to exclude from the final list
+        :param step: In case of having steps within list of particles
+        :return: Final StarFileclass
+        """
         if return_cls == None:
             return_cls = StarFile(None)
         else:
@@ -353,9 +407,18 @@ class StarFile(dict):
 
     @staticmethod
     def get_index(dataframe, inc_list=None, exc_list=None, step=None):
+        """
+        Static method use to find the specific index in case any of the options are provided
+        :param dataframe:  Dataframes of the Starfile class
+        :type dataframe:  pandas.DataFrame
+        :param inc_list:  List pf particles to include from the final list
+        :param exc_list: List of partocles to exclude from the final list
+        :param step:  In case of having steps within list of particles
+        :return: index
+        """
 
-        assert len([entry for entry in [None, None, [0, 2]] if entry is not None]) in (
-        0, 1), "You can only provide one of the options for [inc_list, exc_list, step]"
+        assert len([entry for entry in [None, None, [0, 2]] if entry is not None]) in (0, 1), \
+            "You can only provide one of the options for [inc_list, exc_list, step]"
 
         if step is not None:
             if len(step) == 2:
@@ -377,6 +440,11 @@ class StarFile(dict):
         return index
 
     def is_loop(self, tag):
+        """
+
+        :param tag:
+        :return:
+        """
         try:
             return self.line_dict[tag]['is_loop']
         except KeyError:
@@ -408,7 +476,10 @@ class StarFile(dict):
                 mode = 'w'
             else:
                 mode = 'a'
+
             df = self[tag]
+
+            # print(idx, tag, df)
 
             try:
                 is_loop = self.line_dict[tag]['is_loop']
@@ -430,6 +501,7 @@ class StarFile(dict):
             else:
                 df = df.transpose()
 
+
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
 
@@ -439,7 +511,6 @@ class StarFile(dict):
 def sphire_header_magic(tag, special_keys=None):
     star_translation_dict = {
         "ptcl_source_image": "_rlnMicrographName",
-        "ptcl_source_apix": "_rlnDetectorPixelSize",
         "phi": "_rlnAngleRot",
         "theta": "_rlnAngleTilt",
         "psi": "_rlnAnglePsi",
@@ -455,7 +526,23 @@ def sphire_header_magic(tag, special_keys=None):
         "_rlnDefocusV": "_rlnDefocusV",
         "_rlnDefocusAngle": "_rlnDefocusAngle",
         "_rlnCoordinateX": "_rlnCoordinateX",
-        "_rlnCoordinateY": "_rlnCoordinateY"
+        "_rlnCoordinateY": "_rlnCoordinateY",
+
+        "mirror": "_spMirror",
+        "scale": "_spScale",
+        "ctf_applied": "_spCtfapplied",
+        "is_complex_ri": "_spIs_complex_ri",
+        "changecount": "_spChangecount",
+        "resample_ratio" : "_spResample_ratio",
+        "_spMirror" : "_spMirror",
+        "_spScale"  : "_spScale"
+
+        # "apix_x": "_spApixx",
+        # "apix_y": "_spApixy",
+        # "apix_z": "_spApixz",
+        # "nx" : "_spNx",
+        # "ny" : "_spNy",
+        # "nz" : "_spNz"
     }
 
     for value in list(star_translation_dict.values()):
@@ -474,11 +561,13 @@ def sphire_header_magic(tag, special_keys=None):
                 pass
             elif tag == 'data_path':
                 pass
+            elif tag == 'originalid':
+                pass
             else:
                 assert False, 'Missing rule for {}'.format(tag)
         else:
             key_value = star_translation_dict[tag]
-    except KeyError:
+    except KeyError or TypeError:
         return key_value
 
     return key_value
@@ -521,29 +610,54 @@ def get_emdata_ctf(star_data):
 
 
 def get_emdata_transform(star_data):
-    trans_dict = {
-        "type": "spider",
-        "phi": star_data["_rlnAngleRot"],
-        "theta": star_data["_rlnAngleTilt"],
-        "psi": star_data["_rlnAnglePsi"],
-        "tx": -star_data["_rlnOriginX"],
-        "ty": -star_data["_rlnOriginY"],
-        "tz": 0.0,
-        "mirror": 0,
-        "scale": 1.0
-    }
+    try:
+        trans_dict = {
+            "type": "spider",
+            "phi": star_data["_rlnAngleRot"],
+            "theta": star_data["_rlnAngleTilt"],
+            "psi": star_data["_rlnAnglePsi"],
+            "tx": -star_data["_rlnOriginX"],
+            "ty": -star_data["_rlnOriginY"],
+            "tz": 0.0,
+            "mirror": star_data["_spMirror"],
+            "scale": star_data["_spScale"]
+        }
+    except Exception as e :
+        # print("Exception coming from xformprojection", e)
+        trans_dict = {
+            "type": "spider",
+            "phi": star_data["_rlnAngleRot"],
+            "theta": star_data["_rlnAngleTilt"],
+            "psi": star_data["_rlnAnglePsi"],
+            "tx": -star_data["_rlnOriginX"],
+            "ty": -star_data["_rlnOriginY"],
+            "tz": 0.0,
+            "mirror": star_data["_spMirror"],
+            "scale": star_data["_spScale"]
+        }
     return trans_dict
 
 
 def get_emdata_transform_2d(star_data):
-    trans_dict = {
-        "type": "2d",
-        "tx": -star_data["_rlnOriginX"],
-        "ty": -star_data["_rlnOriginY"],
-        "alpha": star_data["_rlnAnglePsi"],
-        "mirror": 0,
-        "scale": 1.0
-    }
+    try:
+        trans_dict = {
+            "type": "2d",
+            "tx": -star_data["_rlnOriginX"],
+            "ty": -star_data["_rlnOriginY"],
+            "alpha": star_data["_rlnAnglePsi"],
+            "mirror": star_data["_spMirror"],
+            "scale": star_data["_spScale"]
+        }
+    except Exception as e:
+        # print("Exception coming from transform2d", e)
+        trans_dict = {
+            "type": "2d",
+            "tx": -star_data["_rlnOriginX"],
+            "ty": -star_data["_rlnOriginY"],
+            "alpha": star_data["_rlnAnglePsi"],
+            "mirror": star_data["_spMirror"],
+            "scale": star_data["_spScale"]
+        }
     return trans_dict
 
 
