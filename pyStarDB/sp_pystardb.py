@@ -80,31 +80,20 @@ class StarFile(dict):
 
         self.sphire_keys = {
             "_rlnMicrographName"    : "ptcl_source_image",
-            "_spMirror"             : "mirror",
-            "_spScale"              : "scale",
-            "_spCtfapplied"         : "ctf_applied",
-            "_spIs_complex_ri"         : "is_complex_ri",
-            "_spChangecount"           :  "changecount",
-            "_spResample_ratio"         :  "resample_ratio"
-            # "_spApixx"              : "apix_x",
-            # "_spApixy"              : "apix_y",
-            # "_spApixz"              : "apix_z",
-            # "_spNx"                 : "nx",
-            # "_spNy"                 : "ny",
-            # "_spNz"                 : "nz"
         }
         self.special_keys = {'ctf', 'xform.projection', 'ptcl_source_coord',
-                             'xform.align2d', "data_path", "originalid"}
+                             'xform.align2d', "data_path"}
 
         self.ignored_keys = {'HostEndian', 'ImageEndian', 'MRC.maximum', 'MRC.mean', 'MRC.minimum', 'MRC.mx',
                              'MRC.my', 'MRC.mz', 'MRC.nlabels', 'MRC.nsymbt', 'MRC.nx', 'MRC.nxstart', 'MRC.ny',
                              'MRC.nystart', 'MRC.nz', 'MRC.nzstart', 'MRC.rms', 'MRC.xlen', 'MRC.ylen', 'MRC.zlen',
-                               'datatype', 'is_complex',  'MRC.label1',
+                               'datatype', 'is_complex',  'MRC.label1', 'changecount', "is_complex_ri", "ctf_applied",
+                             "resample_ratio", "originalid", 'ptcl_source_coord_id',
                              'is_complex_x', 'is_fftodd', 'is_fftpad', 'is_intensity', 'maximum', 'mean',
                              'mean_nonzero', 'ptcl_source_apix', 'apix_x', 'apix_y', 'apix_z', 'nx', 'ny', 'nz',
                              'minimum', 'origin_x', 'origin_y', 'origin_z', 'sigma', 'sigma_nonzero',
-                             'source_n', 'source_path', 'square_sum', 'ptcl_source_coord_id', 'ptcl_source_box_id',
-                             'data_n','MRC.mapc', 'MRC.mapr',
+                             'source_n', 'source_path', 'square_sum', 'ptcl_source_box_id',
+                             'data_n','MRC.mapc', 'MRC.mapr', 'is_complex_x', 'is_complex',
                              'MRC.maps', 'MRC.alpha', 'MRC.beta', 'MRC.gamma', 'MRC.ispg', 'MRC.label0',
                              'MRC.machinestamp', 'npad', 'ptcl_source_apix', 'data_source'
                              }
@@ -527,22 +516,6 @@ def sphire_header_magic(tag, special_keys=None):
         "_rlnDefocusAngle": "_rlnDefocusAngle",
         "_rlnCoordinateX": "_rlnCoordinateX",
         "_rlnCoordinateY": "_rlnCoordinateY",
-
-        "mirror": "_spMirror",
-        "scale": "_spScale",
-        "ctf_applied": "_spCtfapplied",
-        "is_complex_ri": "_spIs_complex_ri",
-        "changecount": "_spChangecount",
-        "resample_ratio" : "_spResample_ratio",
-        "_spMirror" : "_spMirror",
-        "_spScale"  : "_spScale"
-
-        # "apix_x": "_spApixx",
-        # "apix_y": "_spApixy",
-        # "apix_z": "_spApixz",
-        # "nx" : "_spNx",
-        # "ny" : "_spNy",
-        # "nz" : "_spNz"
     }
 
     for value in list(star_translation_dict.values()):
@@ -560,8 +533,6 @@ def sphire_header_magic(tag, special_keys=None):
             elif tag == 'xform.align2d':
                 pass
             elif tag == 'data_path':
-                pass
-            elif tag == 'originalid':
                 pass
             else:
                 assert False, 'Missing rule for {}'.format(tag)
@@ -619,22 +590,11 @@ def get_emdata_transform(star_data):
             "tx": -star_data["_rlnOriginX"],
             "ty": -star_data["_rlnOriginY"],
             "tz": 0.0,
-            "mirror": star_data["_spMirror"],
-            "scale": star_data["_spScale"]
+            "mirror": 0,
+            "scale": 1.0
         }
     except Exception as e :
-        # print("Exception coming from xformprojection", e)
-        trans_dict = {
-            "type": "spider",
-            "phi": star_data["_rlnAngleRot"],
-            "theta": star_data["_rlnAngleTilt"],
-            "psi": star_data["_rlnAnglePsi"],
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "tz": 0.0,
-            "mirror": star_data["_spMirror"],
-            "scale": star_data["_spScale"]
-        }
+        pass
     return trans_dict
 
 
@@ -645,19 +605,11 @@ def get_emdata_transform_2d(star_data):
             "tx": -star_data["_rlnOriginX"],
             "ty": -star_data["_rlnOriginY"],
             "alpha": star_data["_rlnAnglePsi"],
-            "mirror": star_data["_spMirror"],
-            "scale": star_data["_spScale"]
+            "mirror": 0,
+            "scale": 1.0
         }
     except Exception as e:
-        # print("Exception coming from transform2d", e)
-        trans_dict = {
-            "type": "2d",
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "alpha": star_data["_rlnAnglePsi"],
-            "mirror": star_data["_spMirror"],
-            "scale": star_data["_spScale"]
-        }
+        pass
     return trans_dict
 
 
