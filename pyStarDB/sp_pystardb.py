@@ -544,74 +544,6 @@ def sphire_header_magic(tag, special_keys=None):
     return key_value
 
 
-def get_emdata_ctf(star_data):
-    idx_cter_astig_ang = 45 - star_data["_rlnDefocusAngle"]
-    if idx_cter_astig_ang >= 180:
-        idx_cter_astig_ang -= 180
-    else:
-        idx_cter_astig_ang += 180
-
-    try:
-        ctfdict = {"defocus": ((star_data["_rlnDefocusU"] +
-                                star_data["_rlnDefocusV"]) / 20000),
-                   "bfactor": star_data["_rlnCtfBfactor"],
-                   "ampcont": 100 * star_data["_rlnAmplitudeContrast"],
-                   "apix": (10000 * star_data["_rlnDetectorPixelSize"]) /
-                           star_data["_rlnMagnification"],
-                   "voltage": star_data["_rlnVoltage"],
-                   "cs": star_data["_rlnSphericalAberration"],
-                   "dfdiff": ((-star_data["_rlnDefocusU"] +
-                               star_data["_rlnDefocusV"]) / 10000),
-                   "dfang": idx_cter_astig_ang
-                   }
-    except:
-        ctfdict = {"defocus": ((star_data["_rlnDefocusU"] +
-                                star_data["_rlnDefocusV"]) / 20000),
-                   "bfactor": 0.0,
-                   "ampcont": 100 * star_data["_rlnAmplitudeContrast"],
-                   "apix": (10000 * star_data["_rlnDetectorPixelSize"]) /
-                           star_data["_rlnMagnification"],
-                   "voltage": star_data["_rlnVoltage"],
-                   "cs": star_data["_rlnSphericalAberration"],
-                   "dfdiff": ((-star_data["_rlnDefocusU"] +
-                               star_data["_rlnDefocusV"]) / 10000),
-                   "dfang": idx_cter_astig_ang
-                   }
-    return ctfdict
-
-
-def get_emdata_transform(star_data):
-    try:
-        trans_dict = {
-            "type": "spider",
-            "phi": star_data["_rlnAngleRot"],
-            "theta": star_data["_rlnAngleTilt"],
-            "psi": star_data["_rlnAnglePsi"],
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "tz": 0.0,
-            "mirror": 0,
-            "scale": 1.0
-        }
-    except Exception as e :
-        pass
-    return trans_dict
-
-
-def get_emdata_transform_2d(star_data):
-    try:
-        trans_dict = {
-            "type": "2d",
-            "tx": -star_data["_rlnOriginX"],
-            "ty": -star_data["_rlnOriginY"],
-            "alpha": star_data["_rlnAnglePsi"],
-            "mirror": 0,
-            "scale": 1.0
-        }
-    except Exception as e:
-        pass
-    return trans_dict
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -629,7 +561,6 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     star_file = StarFile(args.input)
-
     print(star_file)
 
 """

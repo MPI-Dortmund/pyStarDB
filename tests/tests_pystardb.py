@@ -221,10 +221,10 @@ class MyTestCase(unittest.TestCase):
                 if '_col2' in line:
                     col_2_counter = col_2_counter +1
 
-        try:
-            os.remove(fname)
-        except FileNotFoundError:
-            pass
+        # try:
+        #     os.remove(fname)
+        # except FileNotFoundError:
+        #     pass
 
         self.assertTrue(col_1_counter == 1 and col_2_counter == 1, "Data block seems to be copied...")
 
