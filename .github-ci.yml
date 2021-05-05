@@ -1,0 +1,10 @@
+stages:
+ - test
+
+unittest: # Name of the job
+  stage: test
+  image: sphiredevel/pystardb-ut:latest # Image that should be used
+  script:
+   - pip install coverage pytest pytest-cov
+   - pytest --cov=pyStarDB/
+   - coverage xml --ignore-errors
