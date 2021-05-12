@@ -1,7 +1,7 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+# with open("README.md", "r") as fh:
+#     long_description = fh.read()
 
 setuptools.setup(
     name= "pyStarDB",
@@ -9,7 +9,7 @@ setuptools.setup(
     author="Adnan Ali, Markus Stabrin",
     description="Star file python Package",
     license = "MIT",
-    url="https://gitlab.gwdg.de/sphire/starfile_db.git",
+    url="https://github.com/MPI-Dortmund/pyStarDB.git",
     python_requires = '>=3.6',
     packages=setuptools.find_packages(),
     install_requires = [

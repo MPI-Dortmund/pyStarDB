@@ -5,6 +5,4 @@ unittest: # Name of the job
   stage: test
   image: sphiredevel/pystardb-ut:latest # Image that should be used
   script:
-   - pip install coverage pytest pytest-cov
-   - pytest --cov=pyStarDB/
-   - coverage xml --ignore-errors
+- source activate pystar; pip uninstall pystar -y; python setup.py install; pip install coverage pytest pytest-cov; pytest --cov=pystar/; coverage xml --ignore-error
