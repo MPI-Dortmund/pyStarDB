@@ -4,6 +4,8 @@ import pandas as pd
 from pyStarDB import sp_pystardb as pystar
 import numpy as np
 
+#print to just check
+
 class MyTestCase(unittest.TestCase):
 
     def test_file_is_written_loop_notag(self):
