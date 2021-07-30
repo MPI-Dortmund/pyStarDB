@@ -66,20 +66,26 @@ class Widget(QtWidgets.QWidget):
 
     def DeleteColumn(self):
         print("Delete Column is being called")
+        # print("Key to delete is ", self.pathLE2.text())
         # self.data = pandas.DataFrame([[0, 1, 5], [2, 3, 4]], columns=['_col1', '_col2', '_col3'])
-        print("Key to delete is " , self.pathLE2.text())
+        try:
+            self.data.drop(self.pathLE2.text(), inplace=True, axis = 1)
+            self.model = PandasModel(self.data)
+            self.pandasTv.setModel(self.model)
+        except KeyError:
+            print("No column found with that name {} to delete".format(self.pathLE2.text()))
 
-        self.data.drop(self.pathLE2.text(), inplace=True, axis = 1)
-        self.model = PandasModel(self.data)
-        self.pandasTv.setModel(self.model)
-
-        # print()
 
     def DeleteRow(self):
         print("Deleter Row is being called")
-        self.data.drop(int(self.pathLE3.text()), inplace=True, axis=0)
-        self.model = PandasModel(self.data)
-        self.pandasTv.setModel(self.model)
+        try:
+            self.data.drop(int(self.pathLE3.text()), inplace=True, axis=0)
+            self.model = PandasModel(self.data)
+            self.pandasTv.setModel(self.model)
+        except KeyError :
+            print("No row found that number {} to delete".format(int(self.pathLE3.text())))
+        except ValueError:
+            print("Please enter number, you entered {}".format(self.pathLE3.text()))
 
     def Write_Updated_File(self):
         print("Writing new star")
