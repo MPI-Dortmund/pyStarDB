@@ -15,30 +15,31 @@ class Widget(QtWidgets.QWidget):
         self.data : pandas.DataFrame()
         self.star : pystar.StarFile()
 
-
         self.pathLE1 = QtWidgets.QLineEdit(self)
-        layout1.addWidget(self.pathLE1 , 0, 0)
-        self.loadBtn1 = QtWidgets.QPushButton("Select File", self)
-        layout1.addWidget(self.loadBtn1, 0, 1)
-        self.loadBtn1.clicked.connect(self.loadFile)
-
         self.pathLE2 = QtWidgets.QLineEdit(self)
-        layout1.addWidget(self.pathLE2, 1, 0)
-        self.loadBtn2 = QtWidgets.QPushButton("Delete Column", self)
-        layout1.addWidget(self.loadBtn2, 1, 1)
-        self.loadBtn2.clicked.connect(self.DeleteColumn)
-
         self.pathLE3 = QtWidgets.QLineEdit(self)
-        layout1.addWidget(self.pathLE3, 2, 0)
-        self.loadBtn3 = QtWidgets.QPushButton("Delete Row", self)
-        layout1.addWidget(self.loadBtn3, 2, 1)
-        self.loadBtn3.clicked.connect(self.DeleteRow)
-
-
         self.pathLE4 = QtWidgets.QLineEdit(self)
-        layout1.addWidget(self.pathLE4, 3, 0)
+
+        self.loadBtn1 = QtWidgets.QPushButton("Select File", self)
+        self.loadBtn2 = QtWidgets.QPushButton("Delete Column", self)
+        self.loadBtn3 = QtWidgets.QPushButton("Delete Row", self)
         self.loadBtn4 = QtWidgets.QPushButton("Write New File", self)
+
+        layout1.addWidget(self.pathLE1 , 0, 0)
+        layout1.addWidget(self.loadBtn1, 0, 1)
+
+        layout1.addWidget(self.pathLE2, 1, 0)
+        layout1.addWidget(self.loadBtn2, 1, 1)
+
+        layout1.addWidget(self.pathLE3, 2, 0)
+        layout1.addWidget(self.loadBtn3, 2, 1)
+
+        layout1.addWidget(self.pathLE4, 3, 0)
         layout1.addWidget(self.loadBtn4, 3, 1)
+
+        self.loadBtn1.clicked.connect(self.loadFile)
+        self.loadBtn2.clicked.connect(self.DeleteColumn)
+        self.loadBtn3.clicked.connect(self.DeleteRow)
         self.loadBtn4.clicked.connect(self.Write_Updated_File)
 
         self.pandasTv = QtWidgets.QTableView(self)
@@ -47,9 +48,7 @@ class Widget(QtWidgets.QWidget):
 
         final_layout.addLayout(layout1,stretch=1)
         final_layout.addLayout(layout2, stretch=3)
-
         self.resize(840, 680)
-
 
     def loadFile(self):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "STAR Files (*.star)");
@@ -63,7 +62,6 @@ class Widget(QtWidgets.QWidget):
         self.model = PandasModel(self.data)
         self.pandasTv.setModel(self.model)
 
-
     def DeleteColumn(self):
         print("Delete Column is being called")
         # print("Key to delete is ", self.pathLE2.text())
@@ -74,7 +72,6 @@ class Widget(QtWidgets.QWidget):
             self.pandasTv.setModel(self.model)
         except KeyError:
             print("No column found with that name {} to delete".format(self.pathLE2.text()))
-
 
     def DeleteRow(self):
         print("Deleter Row is being called")
@@ -91,7 +88,6 @@ class Widget(QtWidgets.QWidget):
         print("Writing new star")
         self.star.update("particles", self.data, True)
         self.star.write_star_file(self.pathLE4.text())
-
 
 
 ###https://stackoverflow.com/questions/44603119/how-to-display-a-pandas-data-frame-with-pyqt5-pyside2
