@@ -31,7 +31,6 @@ import os
 from io import StringIO
 import sys
 import numpy as np
-
 """
 Base Class for Starfile format. Will be able to handle data
 """
@@ -55,7 +54,7 @@ class StarFile(dict):
         line_dict : (dictionary) Line numbers for each section of each block
     """
 
-    def __init__(self, star_file):
+    def __init__(self, star_file : str):
         """
         :param star_file:
         """
@@ -211,7 +210,7 @@ class StarFile(dict):
             else:
                 pass
 
-    def read_tag(self, tag, line_dict):
+    def read_tag(self, tag:str, line_dict:dict):
         """
         Populates self.imported_content with data.
         :param tag:
@@ -228,7 +227,7 @@ class StarFile(dict):
             print("Exception handled", e)
             return
 
-    def read_with_loop(self, line_dict):
+    def read_with_loop(self, line_dict:dict):
         """
         Reads data when block starts with 'loop_'.
         :param line_dict:
@@ -260,7 +259,7 @@ class StarFile(dict):
             delim_whitespace=True,
         )
 
-    def read_without_loop(self, line_dict):
+    def read_without_loop(self, line_dict:dict):
         """
         Reads data when block doesn't start with 'loop_'.
         :param line_dict:
@@ -288,7 +287,7 @@ class StarFile(dict):
     # def __setitem__(self, tag, data):
     #     self.update(tag, data, True)
 
-    def update(self, tag, value, loop=False):
+    def update(self, tag:str, value, loop=False):
         """
         Updates the value (int, float, dict, list, string) with a specific tag
         :param tag: the key of the database you want to update
@@ -430,9 +429,9 @@ class StarFile(dict):
 
     def is_loop(self, tag):
         """
-
-        :param tag:
-        :return:
+        Check if it is a loop of values or single value
+        :param tag: string value that is to be checked
+        :return: True/False or None depending on the tag
         """
         try:
             return self.line_dict[tag]['is_loop']
@@ -440,12 +439,30 @@ class StarFile(dict):
             return None
 
     def get(self, tag):
+        """
+        Get the dictionary of a particular tag
+        :param tag:
+        :return: Dictionary with all the values from that tag
+        """
         return self[tag].to_dict()
 
     def set(self, tag, dicta):
+        """
+        Set the value (dictionary) of a particle tag
+        :param tag: string value that is to be set
+        :param dicta: dictionary
+        :return: Updated starfile
+        """
         return self.update(tag, dicta, True)
 
     def write_star_file(self, out_star_file=None, tags=None, overwrite=False):
+        """
+        Write starfile with all the data inside the current starfile class
+        :param out_star_file: Name of the starfile to be written
+        :param tags: In case you only to write specific keys
+        :param overwrite: Whether to overwrite the existing data in the starfile
+        :return: None
+        """
         # in case if the new file is not given and wants to overwrite the existing file
         if out_star_file == None:
             out_star_file = self.star_file
@@ -498,6 +515,12 @@ class StarFile(dict):
 
 
 def sphire_header_magic(tag, special_keys=None):
+    """
+    Returns the star_format key which is similar to sphire_format key
+    :param tag: key to be checked
+    :param special_keys: In case special keys are pass
+    :return: star_format key
+    """
     star_translation_dict = {
         "ptcl_source_image": "_rlnMicrographName",
         "phi": "_rlnAngleRot",
