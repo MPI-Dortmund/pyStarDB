@@ -1,5 +1,6 @@
 import sys
 import pandas
+import numpy as np
 from PyQt5 import QtCore, QtWidgets
 from pyStarDB import sp_pystardb as pystar
 
@@ -19,6 +20,8 @@ class Widget(QtWidgets.QWidget):
         self.pathLE2 = QtWidgets.QLineEdit(self)
         self.pathLE3 = QtWidgets.QLineEdit(self)
         self.pathLE4 = QtWidgets.QLineEdit(self)
+        self.pathLE5 = QtWidgets.QLineEdit(self)
+        self.pathLE6 = QtWidgets.QLineEdit(self)
 
         self.loadBtn1 = QtWidgets.QPushButton("Select File", self)
         self.loadBtn2 = QtWidgets.QPushButton("Delete Column", self)
@@ -26,15 +29,18 @@ class Widget(QtWidgets.QWidget):
         self.loadBtn4 = QtWidgets.QPushButton("Write New File", self)
 
         self.loadBtn5 = QtWidgets.QPushButton("String Replace", self)
+        self.loadBtn6 = QtWidgets.QPushButton("Randomize Value", self)
 
 
         self.ColumnList = QtWidgets.QComboBox(self)
         self.RowList = QtWidgets.QComboBox(self)
 
         self.ColumnList1 = QtWidgets.QComboBox(self)
+        self.ColumnList2 = QtWidgets.QComboBox(self)
 
         self.ColumnList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.ColumnList1.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.ColumnList2.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
         self.RowList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
@@ -51,12 +57,15 @@ class Widget(QtWidgets.QWidget):
         layout1.addWidget(self.pathLE4, 3, 0)
         layout1.addWidget(self.loadBtn4, 3, 1)
 
-
         layout1.addWidget(self.ColumnList1, 4, 0)
         layout1.addWidget(self.pathLE2, 4, 1)
         layout1.addWidget(self.pathLE3, 4, 2)
         layout1.addWidget(self.loadBtn5, 4, 3)
 
+        layout1.addWidget(self.ColumnList2, 5, 0)
+        layout1.addWidget(self.pathLE5, 5, 1)
+        layout1.addWidget(self.pathLE6, 5, 2)
+        layout1.addWidget(self.loadBtn6, 5, 3)
 
         self.loadBtn1.clicked.connect(self.loadFile)
         self.loadBtn2.clicked.connect(self.DeleteColumn)
@@ -64,6 +73,7 @@ class Widget(QtWidgets.QWidget):
         self.loadBtn4.clicked.connect(self.Write_Updated_File)
 
         self.loadBtn5.clicked.connect(self.string_replace_me)
+        self.loadBtn6.clicked.connect(self.randomize_values)
 
         self.pandasTv = QtWidgets.QTableView(self)
         self.pandasTv.setSortingEnabled(True)
@@ -85,6 +95,17 @@ class Widget(QtWidgets.QWidget):
         self.model = PandasModel(self.data)
         self.pandasTv.setModel(self.model)
 
+    def randomize_values(self):
+        column_name = self.ColumnList2.currentText()
+        min_val = self.pathLE5.text()
+        max_val = self.pathLE6.text()
+        self.data[column_name] = np.random.randint(int(min_val), int(max_val), size=len(self.data))
+
+
+        self.updateKeys()
+        self.updateRows()
+        self.model = PandasModel(self.data)
+        self.pandasTv.setModel(self.model)
 
     def loadFile(self):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "STAR Files (*.star)");
@@ -106,9 +127,11 @@ class Widget(QtWidgets.QWidget):
         else :
             self.ColumnList.clear()
             self.ColumnList1.clear()
+            self.ColumnList2.clear()
             self.keylist = self.data.columns
             self.ColumnList.addItems(self.keylist)
             self.ColumnList1.addItems(self.keylist)
+            self.ColumnList2.addItems(self.keylist)
 
     def updateRows(self):
         # print("Index" , print(self.data.rows))
