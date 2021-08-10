@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import pandas
 from PyQt5 import QtCore, QtWidgets
@@ -18,8 +16,8 @@ class Widget(QtWidgets.QWidget):
         self.star : pystar.StarFile()
 
         self.pathLE1 = QtWidgets.QLineEdit(self)
-        # self.pathLE2 = QtWidgets.QLineEdit(self)
-        # self.pathLE3 = QtWidgets.QLineEdit(self)
+        self.pathLE2 = QtWidgets.QLineEdit(self)
+        self.pathLE3 = QtWidgets.QLineEdit(self)
         self.pathLE4 = QtWidgets.QLineEdit(self)
 
         self.loadBtn1 = QtWidgets.QPushButton("Select File", self)
@@ -27,10 +25,17 @@ class Widget(QtWidgets.QWidget):
         self.loadBtn3 = QtWidgets.QPushButton("Delete Row", self)
         self.loadBtn4 = QtWidgets.QPushButton("Write New File", self)
 
+        self.loadBtn5 = QtWidgets.QPushButton("String Replace", self)
+
 
         self.ColumnList = QtWidgets.QComboBox(self)
         self.RowList = QtWidgets.QComboBox(self)
+
+        self.ColumnList1 = QtWidgets.QComboBox(self)
+
         self.ColumnList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.ColumnList1.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
         self.RowList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
         layout1.addWidget(self.pathLE1 , 0, 0)
@@ -46,10 +51,19 @@ class Widget(QtWidgets.QWidget):
         layout1.addWidget(self.pathLE4, 3, 0)
         layout1.addWidget(self.loadBtn4, 3, 1)
 
+
+        layout1.addWidget(self.ColumnList1, 4, 0)
+        layout1.addWidget(self.pathLE2, 4, 1)
+        layout1.addWidget(self.pathLE3, 4, 2)
+        layout1.addWidget(self.loadBtn5, 4, 3)
+
+
         self.loadBtn1.clicked.connect(self.loadFile)
         self.loadBtn2.clicked.connect(self.DeleteColumn)
         self.loadBtn3.clicked.connect(self.DeleteRow)
         self.loadBtn4.clicked.connect(self.Write_Updated_File)
+
+        self.loadBtn5.clicked.connect(self.string_replace_me)
 
         self.pandasTv = QtWidgets.QTableView(self)
         self.pandasTv.setSortingEnabled(True)
@@ -58,6 +72,19 @@ class Widget(QtWidgets.QWidget):
         final_layout.addLayout(layout1,stretch=1)
         final_layout.addLayout(layout2, stretch=3)
         self.resize(840, 680)
+
+    def string_replace_me(self):
+        column_name = self.ColumnList1.currentText()
+        current_str = self.pathLE2.text()
+        replace_str = self.pathLE3.text()
+        self.data[column_name] = self.data[column_name].str.replace(current_str, replace_str)
+
+
+        self.updateKeys()
+        self.updateRows()
+        self.model = PandasModel(self.data)
+        self.pandasTv.setModel(self.model)
+
 
     def loadFile(self):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "STAR Files (*.star)");
@@ -78,8 +105,10 @@ class Widget(QtWidgets.QWidget):
             print("No data yet")
         else :
             self.ColumnList.clear()
+            self.ColumnList1.clear()
             self.keylist = self.data.columns
             self.ColumnList.addItems(self.keylist)
+            self.ColumnList1.addItems(self.keylist)
 
     def updateRows(self):
         # print("Index" , print(self.data.rows))
