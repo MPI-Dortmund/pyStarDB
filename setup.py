@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name= "pyStarDB",
-    version= "0.1.0b2",
+    version= "0.2.0",
     author="Adnan Ali, Markus Stabrin",
     description="Star file python Package",
     license = "MIT",

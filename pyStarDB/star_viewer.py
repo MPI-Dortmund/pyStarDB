@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import pandas
 from PyQt5 import QtCore, QtWidgets
@@ -16,8 +18,8 @@ class Widget(QtWidgets.QWidget):
         self.star : pystar.StarFile()
 
         self.pathLE1 = QtWidgets.QLineEdit(self)
-        self.pathLE2 = QtWidgets.QLineEdit(self)
-        self.pathLE3 = QtWidgets.QLineEdit(self)
+        # self.pathLE2 = QtWidgets.QLineEdit(self)
+        # self.pathLE3 = QtWidgets.QLineEdit(self)
         self.pathLE4 = QtWidgets.QLineEdit(self)
 
         self.loadBtn1 = QtWidgets.QPushButton("Select File", self)
@@ -25,13 +27,20 @@ class Widget(QtWidgets.QWidget):
         self.loadBtn3 = QtWidgets.QPushButton("Delete Row", self)
         self.loadBtn4 = QtWidgets.QPushButton("Write New File", self)
 
+
+        self.ColumnList = QtWidgets.QComboBox(self)
+        self.RowList = QtWidgets.QComboBox(self)
+        self.ColumnList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.RowList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+
         layout1.addWidget(self.pathLE1 , 0, 0)
         layout1.addWidget(self.loadBtn1, 0, 1)
 
-        layout1.addWidget(self.pathLE2, 1, 0)
+        # layout1.addWidget(self.pathLE2, 1, 0)
         layout1.addWidget(self.loadBtn2, 1, 1)
+        layout1.addWidget(self.ColumnList, 1, 0)
 
-        layout1.addWidget(self.pathLE3, 2, 0)
+        layout1.addWidget(self.RowList, 2, 0)
         layout1.addWidget(self.loadBtn3, 2, 1)
 
         layout1.addWidget(self.pathLE4, 3, 0)
@@ -61,28 +70,48 @@ class Widget(QtWidgets.QWidget):
 
         self.model = PandasModel(self.data)
         self.pandasTv.setModel(self.model)
+        self.updateKeys()
+        self.updateRows()
+
+    def updateKeys(self):
+        if self.data.empty:
+            print("No data yet")
+        else :
+            self.ColumnList.clear()
+            self.keylist = self.data.columns
+            self.ColumnList.addItems(self.keylist)
+
+    def updateRows(self):
+        # print("Index" , print(self.data.rows))
+        if self.data.empty:
+            print("No data yet")
+        else :
+            self.RowList.clear()
+            self.numlist = [str(value) for value in self.data.index]
+            self.RowList.addItems(self.numlist)
 
     def DeleteColumn(self):
         print("Delete Column is being called")
         # print("Key to delete is ", self.pathLE2.text())
         # self.data = pandas.DataFrame([[0, 1, 5], [2, 3, 4]], columns=['_col1', '_col2', '_col3'])
         try:
-            self.data.drop(self.pathLE2.text(), inplace=True, axis = 1)
+            self.data.drop(self.ColumnList.currentText(), inplace=True, axis = 1)
             self.model = PandasModel(self.data)
             self.pandasTv.setModel(self.model)
-        except KeyError:
-            print("No column found with that name {} to delete".format(self.pathLE2.text()))
+            self.updateKeys()
+        except Exception as e :
+            print(e)
+
 
     def DeleteRow(self):
         print("Deleter Row is being called")
         try:
-            self.data.drop(int(self.pathLE3.text()), inplace=True, axis=0)
+            self.data.drop(int( self.RowList.currentText() ), inplace=True, axis=0)
             self.model = PandasModel(self.data)
             self.pandasTv.setModel(self.model)
-        except KeyError :
-            print("No row found that number {} to delete".format(int(self.pathLE3.text())))
-        except ValueError:
-            print("Please enter number, you entered {}".format(self.pathLE3.text()))
+            self.updateRows()
+        except Exception as e:
+            print(e)
 
     def Write_Updated_File(self):
         print("Writing new star")
@@ -149,10 +178,12 @@ class PandasModel(QtCore.QAbstractTableModel):
         self._df.reset_index(inplace=True, drop=True)
         self.layoutChanged.emit()
 
-
-if __name__ == '__main__':
-
+def main():
     app = QtWidgets.QApplication(sys.argv)
     w = Widget()
     w.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
