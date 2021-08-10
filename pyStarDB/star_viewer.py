@@ -30,6 +30,7 @@ class Widget(QtWidgets.QWidget):
 
         self.loadBtn5 = QtWidgets.QPushButton("String Replace", self)
         self.loadBtn6 = QtWidgets.QPushButton("Randomize Value", self)
+        self.loadBtn7 = QtWidgets.QPushButton("Value Counts", self)
 
 
         self.ColumnList = QtWidgets.QComboBox(self)
@@ -37,10 +38,12 @@ class Widget(QtWidgets.QWidget):
 
         self.ColumnList1 = QtWidgets.QComboBox(self)
         self.ColumnList2 = QtWidgets.QComboBox(self)
+        self.ColumnList3 = QtWidgets.QComboBox(self)
 
         self.ColumnList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.ColumnList1.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.ColumnList2.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.ColumnList3.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
         self.RowList.view().setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
 
@@ -54,8 +57,8 @@ class Widget(QtWidgets.QWidget):
         layout1.addWidget(self.RowList, 2, 0)
         layout1.addWidget(self.loadBtn3, 2, 1)
 
-        layout1.addWidget(self.pathLE4, 3, 0)
-        layout1.addWidget(self.loadBtn4, 3, 1)
+        layout1.addWidget(self.pathLE4, 6, 0)
+        layout1.addWidget(self.loadBtn4, 6, 1)
 
         layout1.addWidget(self.ColumnList1, 4, 0)
         layout1.addWidget(self.pathLE2, 4, 1)
@@ -67,6 +70,9 @@ class Widget(QtWidgets.QWidget):
         layout1.addWidget(self.pathLE6, 5, 2)
         layout1.addWidget(self.loadBtn6, 5, 3)
 
+        layout1.addWidget(self.ColumnList3, 3, 0)
+        layout1.addWidget(self.loadBtn7, 3, 1)
+
         self.loadBtn1.clicked.connect(self.loadFile)
         self.loadBtn2.clicked.connect(self.DeleteColumn)
         self.loadBtn3.clicked.connect(self.DeleteRow)
@@ -74,6 +80,7 @@ class Widget(QtWidgets.QWidget):
 
         self.loadBtn5.clicked.connect(self.string_replace_me)
         self.loadBtn6.clicked.connect(self.randomize_values)
+        self.loadBtn7.clicked.connect(self.value_counts)
 
         self.pandasTv = QtWidgets.QTableView(self)
         self.pandasTv.setSortingEnabled(True)
@@ -107,6 +114,16 @@ class Widget(QtWidgets.QWidget):
         self.model = PandasModel(self.data)
         self.pandasTv.setModel(self.model)
 
+    def value_counts(self):
+        column_name = self.ColumnList2.currentText()
+        print(self.data.value_counts(subset=column_name))
+
+
+        self.updateKeys()
+        self.updateRows()
+        self.model = PandasModel(self.data)
+        self.pandasTv.setModel(self.model)
+
     def loadFile(self):
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "STAR Files (*.star)");
         self.pathLE1.setText(fileName)
@@ -128,10 +145,12 @@ class Widget(QtWidgets.QWidget):
             self.ColumnList.clear()
             self.ColumnList1.clear()
             self.ColumnList2.clear()
+            self.ColumnList3.clear()
             self.keylist = self.data.columns
             self.ColumnList.addItems(self.keylist)
             self.ColumnList1.addItems(self.keylist)
             self.ColumnList2.addItems(self.keylist)
+            self.ColumnList3.addItems(self.keylist)
 
     def updateRows(self):
         # print("Index" , print(self.data.rows))
