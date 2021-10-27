@@ -539,6 +539,7 @@ def sphire_header_magic(tag, special_keys=None):
         "_rlnDefocusAngle": "_rlnDefocusAngle",
         "_rlnCoordinateX": "_rlnCoordinateX",
         "_rlnCoordinateY": "_rlnCoordinateY",
+        "ISAC_class_id": "_rlnClassNumber",
     }
 
     for value in list(star_translation_dict.values()):
