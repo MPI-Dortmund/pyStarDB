@@ -5,12 +5,12 @@ import setuptools
 
 setuptools.setup(
     name= "pyStarDB",
-    version= "0.2.0",
+    version= "0.3.0",
     author="Adnan Ali, Markus Stabrin",
     description="Star file python Package",
     license = "MIT",
     url="https://github.com/MPI-Dortmund/pyStarDB.git",
-    python_requires = '>=3.6',
+    python_requires = '>=3.7',
     packages=setuptools.find_packages(),
     install_requires = [
     "pandas >= 1.0.5",
