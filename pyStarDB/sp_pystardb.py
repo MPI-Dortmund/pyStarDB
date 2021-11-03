@@ -121,7 +121,7 @@ class StarFile(dict):
                 if re.match('^data_([^\s]*)\s*$', _)
                 else _
                 for _ in read.readlines()
-                if _.strip()
+                if _.strip() and not _.startswith('#')
             ]) + '\n'
         self.star_content = StringIO(content)  # It makes a file out of string. Just convenient to reading
         # data of star file
