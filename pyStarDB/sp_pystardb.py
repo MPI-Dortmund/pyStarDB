@@ -46,7 +46,7 @@ class StarFile(dict):
         read_without_loop() : Reads data when block doesn't start with 'loop_'
         __getitem__() : Returns data
         __setitem__() : Imports data
-        write_star() : Writes data to disk for specified tag(s)
+        write_star_file() : Writes data to disk for specified tag(s)
 
     Variables:
         star_file : Name of STAR file
@@ -507,12 +507,14 @@ class StarFile(dict):
             else:
                 df = df.transpose()
 
-
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
 
-            df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
-
+            # Line up columns (adapted from https://stackoverflow.com/a/58649517)
+            with open(out_star_file, 'a') as file:
+                file.writelines( df.to_string(header=False, index=index_loop, na_rep='<NA>') )
+                file.writelines( '\n' )
+            #df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
 
 def sphire_header_magic(tag, special_keys=None):
     """
