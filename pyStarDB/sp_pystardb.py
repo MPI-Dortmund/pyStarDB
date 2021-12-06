@@ -459,7 +459,7 @@ class StarFile(dict):
         """
         Write starfile with all the data inside the current starfile class
         :param out_star_file: Name of the starfile to be written
-        :param tags: In case you only to write specific keys
+        :param tags: In case you only to write specific keys, can be single string or list of strings
         :param overwrite: Whether to overwrite the existing data in the starfile
         :return: None
         """
@@ -475,6 +475,9 @@ class StarFile(dict):
         # Gets all the tags from star database if they are not given by the user
         if tags == None:
             tags = self.keys()
+        # If a single string is provided rather than a list, make it a list
+        elif isinstance(tags, str):
+            tags = [tags]
 
         # Go through each tag and load the dataframe in df.
         for idx, tag in enumerate(tags):
@@ -494,7 +497,6 @@ class StarFile(dict):
 
             # if it is continuous data then write the header information first and then all the data.
             export_header = '\ndata_{}\n'.format(tag)
-            index_loop = True
             if is_loop:
                 export_header += '\nloop_\n' + '\n'.join([
                     '{} #{}'.format(entry, idx)
@@ -502,19 +504,75 @@ class StarFile(dict):
                     in enumerate(df, 1)
                 ])
 
-                index_loop = False
-
-            else:
-                df = df.transpose()
-
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
 
-            # Line up columns (adapted from https://stackoverflow.com/a/58649517)
             with open(out_star_file, 'a') as file:
-                file.writelines( df.to_string(header=False, index=index_loop, na_rep='<NA>') )
-                file.writelines( '\n' )
-            #df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
+                file.write( create_formatted_data_frame(df, is_loop) )
+                file.write( '\n' )
+            #df.to_csv(out_star_file, sep=' ', header=False, index=not is_loop, mode='a', na_rep='<NA>')
+
+def create_formatted_data_frame(data_frame, is_loop):
+    """
+    Format the data frame with ints and floats right aligned and the rest left aligned.
+    :data_frame: Data frame to format
+    :is_loop: If the data frame represents a loop or not
+    :return: formatted data frame
+    """
+    out_fmt = []
+    if is_loop:
+        current_data_frame = data_frame.copy()
+        for column_name in current_data_frame:
+            dtype = current_data_frame[column_name].dtypes
+            if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
+                # Get the maximum length of characters before the comma for good alignment
+                length = max(map(len, map(str, map(int, current_data_frame[column_name]))))
+                align = ' '
+                if np.issubdtype(dtype, np.floating):
+                    formatter = '.6f'
+                    conversion_func = float
+                    # In float fmt, the number before the dot includes all characters
+                    length += 7
+                else:
+                    formatter = 'd'
+                    conversion_func = int
+                # Add an extra whitespace before numbers for better readability
+                length += 1
+            else:
+                align = ' <'
+                length = max(map(len, map(str, current_data_frame[column_name])))
+                formatter = 's'
+                conversion_func = str
+
+            out_format = f"{{:{align}{length}{formatter}}}"
+            out_fmt.append((out_format, conversion_func))
+    else:
+        # Aligned the left column to the left and the right column to the right
+        current_data_frame = data_frame.T.copy()
+        length_index = max(map(len, map(str, current_data_frame.index)))
+        length_data = max(map(len, map(str, current_data_frame.iloc[:, 0])))
+        out_fmt = [
+            (f"{{:<{length_index+2}s}}", str),
+            (f"{{: >{length_data}s}}", str),
+            ]
+
+    output = []
+    # Remove the header labels for an aligned to_string
+    current_data_frame.columns = ['' for _ in current_data_frame.columns]
+    for line in current_data_frame \
+            .to_string(header=True, index=not is_loop, na_rep='<NA>') \
+            .splitlines():
+        if not line.strip():
+            continue
+
+        output.append(
+            ' '.join([
+                out_fmt[idx][0].format(out_fmt[idx][1](entry))
+                for idx, entry
+                in enumerate(line.split())
+                ])
+            )
+    return '\n'.join(output)
 
 def sphire_header_magic(tag, special_keys=None):
     """
