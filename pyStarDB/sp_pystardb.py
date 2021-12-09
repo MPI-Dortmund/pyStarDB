@@ -280,7 +280,7 @@ class StarFile(dict):
         ).transpose()
 
     # Never forget the concept of Recursion otherwise you will be doomed
-    # This will hunt you forever
+    # This will haunt you forever
     # def __getitem__(self, tag):
     #     return self.__getitem__(tag)
     #
@@ -512,6 +512,36 @@ class StarFile(dict):
                 file.write( '\n' )
             #df.to_csv(out_star_file, sep=' ', header=False, index=not is_loop, mode='a', na_rep='<NA>')
 
+    def read_text(self, tag:str, text_file:str, header=None, is_loop=True):
+        """
+        Reads text file
+        :param tag: In case you only to write specific keys, can be single string or list of strings
+        :param text_file: Input text file
+        :param header: List, column headers -- If None, headers will be column index
+        :param is_loop: Boolean, if False, all data will be printed on the same line as the '_rln' parameter name
+        :return: None
+        """
+        self[tag]= pandas.read_csv(
+          text_file,
+          delim_whitespace=True, 
+          skiprows=1, 
+          header=None
+          )
+          # skiprows: If not specified, leading comment line will be used to define columns
+
+        # If None, headers will be column index (which might be easier than '_rlnMicrographShiftX'.)
+        if header : self[tag].columns= header
+        
+        # Without the following, the value(s) will get printed on the same line as '_rln' parameter name
+        self.line_dict[tag]= {'is_loop': is_loop}
+        
+        """
+        TODO: Add to line_dict:
+          block
+          header  
+        Can still write to a file with only line_dict['is_loop'] though
+        """
+        
 def create_formatted_data_frame(data_frame, is_loop):
     """
     Format the data frame with ints and floats right aligned and the rest left aligned.
