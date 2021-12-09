@@ -280,7 +280,7 @@ class StarFile(dict):
         ).transpose()
 
     # Never forget the concept of Recursion otherwise you will be doomed
-    # This will hunt you forever
+    # This will haunt you forever
     # def __getitem__(self, tag):
     #     return self.__getitem__(tag)
     #
