@@ -2,7 +2,7 @@
 [![coverage report](https://gitlab.gwdg.de/mpi-dortmund/sphire/pyStarDB/badges/master/coverage.svg)](https://gitlab.gwdg.de/mpi-dortmund/sphire/pyStarDB/-/commits/master) 
 
 # pyStarDB
-Star file python package
+Star file IO package
 
 ## Basic usage
 ## Import package
@@ -10,7 +10,7 @@ Star file python package
 from pyStarDB import sp_pystardb as star
 import pandas as pd
 ```
-## Read a starfile
+## Read a star file
 
 ```python
 sfile = star.StarFile(path)
