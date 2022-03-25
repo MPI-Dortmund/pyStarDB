@@ -35,6 +35,8 @@ import numpy as np
 Base Class for Starfile format. Will be able to handle data
 """
 
+class InvalidDataFrameFormatException(Exception):
+    pass
 
 class StarFile(dict):
     """
@@ -46,7 +48,7 @@ class StarFile(dict):
         read_without_loop() : Reads data when block doesn't start with 'loop_'
         __getitem__() : Returns data
         __setitem__() : Imports data
-        write_star() : Writes data to disk for specified tag(s)
+        write_star_file() : Writes data to disk for specified tag(s)
 
     Variables:
         star_file : Name of STAR file
@@ -118,7 +120,7 @@ class StarFile(dict):
             # we added this functionality also.
             content = ''.join([
                 '\n{}\n'.format(_)
-                if re.match('^data_([^\s]*)\s*$', _)
+                if re.match(r'^data_([^\s]*)\s*$', _)
                 else _
                 for _ in read.readlines()
                 if _.strip() and not _.startswith('#')
@@ -142,7 +144,7 @@ class StarFile(dict):
         del data
         self.star_content.seek(0)
 
-        for tag_match in re.finditer('^data_([^\s]*)\s*$', content, re.M):
+        for tag_match in re.finditer(r'^data_([^\s]*)\s*$', content, re.M):
             tag = tag_match.group(1)
             self.line_dict[tag] = {
                 'block': [None, None],
@@ -158,11 +160,11 @@ class StarFile(dict):
 
             # https://regex101.com/r/4o3dNy/1/
             self.line_dict[tag]['block'][0] = \
-                len(re.findall('\n', prev_content)) + 1
+                len(re.findall(r'\n', prev_content)) + 1
 
             # https://regex101.com/r/h7Wm8y/2
             header_match = re.search(
-                '((?:(?:loop_\s*)?^_.*$\r?\n?)+)',
+                r'((?:(?:loop_\s*)?^_.*$\r?\n?)+)',
                 current_content,
                 re.M
             )
@@ -177,21 +179,21 @@ class StarFile(dict):
             self.line_dict[tag]['is_loop'] = header_match.group(1).startswith('loop_')
             # https://regex101.com/r/4o3dNy/1/
             self.line_dict[tag]['header'][0] = \
-                len(re.findall('\n', prev_content)) + 1 + self.line_dict[tag]['is_loop']
+                len(re.findall(r'\n', prev_content)) + 1 + self.line_dict[tag]['is_loop']
 
             prev_content = content[:header_match.end() + current_flag - header_match.start()]
             current_content = content[header_match.end() + current_flag - header_match.start():]
             current_flag += header_match.end() - header_match.start()
             # https://regex101.com/r/4o3dNy/1/
             self.line_dict[tag]['header'][1] = \
-                len(re.findall('\n', prev_content))
+                len(re.findall(r'\n', prev_content))
 
             if not self.line_dict[tag]['is_loop']:
                 self.line_dict[tag]['content'] = self.line_dict[tag]['header']
             else:
                 self.line_dict[tag]['content'][0] = self.line_dict[tag]['header'][1] + 1
                 # https://regex101.com/r/HYnKMl/1
-                newline_match = re.search('^\s*$', current_content, re.M)
+                newline_match = re.search(r'^\s*$', current_content, re.M)
 
                 prev_content = content[:newline_match.start() + current_flag]
                 current_content = content[newline_match.start() + current_flag:]
@@ -199,7 +201,7 @@ class StarFile(dict):
 
                 # https://regex101.com/r/4o3dNy/1/
                 self.line_dict[tag]['content'][1] = \
-                    len(re.findall('\n', prev_content))
+                    len(re.findall(r'\n', prev_content))
 
             self.line_dict[tag]['block'][1] = self.line_dict[tag]['content'][1]
 
@@ -280,7 +282,7 @@ class StarFile(dict):
         ).transpose()
 
     # Never forget the concept of Recursion otherwise you will be doomed
-    # This will hunt you forever
+    # This will haunt you forever
     # def __getitem__(self, tag):
     #     return self.__getitem__(tag)
     #
@@ -459,7 +461,7 @@ class StarFile(dict):
         """
         Write starfile with all the data inside the current starfile class
         :param out_star_file: Name of the starfile to be written
-        :param tags: In case you only to write specific keys
+        :param tags: In case you only to write specific keys, can be single string or list of strings
         :param overwrite: Whether to overwrite the existing data in the starfile
         :return: None
         """
@@ -475,6 +477,9 @@ class StarFile(dict):
         # Gets all the tags from star database if they are not given by the user
         if tags == None:
             tags = self.keys()
+        # If a single string is provided rather than a list, make it a list
+        elif isinstance(tags, str):
+            tags = [tags]
 
         # Go through each tag and load the dataframe in df.
         for idx, tag in enumerate(tags):
@@ -494,7 +499,6 @@ class StarFile(dict):
 
             # if it is continuous data then write the header information first and then all the data.
             export_header = '\ndata_{}\n'.format(tag)
-            index_loop = True
             if is_loop:
                 export_header += '\nloop_\n' + '\n'.join([
                     '{} #{}'.format(entry, idx)
@@ -502,17 +506,107 @@ class StarFile(dict):
                     in enumerate(df, 1)
                 ])
 
-                index_loop = False
-
-            else:
-                df = df.transpose()
-
-
             with open(out_star_file, mode) as write:
                 write.write(f'{export_header}\n')
 
-            df.to_csv(out_star_file, sep=' ', header=False, index=index_loop, mode='a', na_rep='<NA>')
+            with open(out_star_file, 'a') as file:
+                file.write( create_formatted_data_frame(df, is_loop) )
+                file.write( '\n' )
+            #df.to_csv(out_star_file, sep=' ', header=False, index=not is_loop, mode='a', na_rep='<NA>')
 
+    def read_text(self, tag:str, text_file:str, header=None, is_loop=True):
+        """
+        Reads text file
+        :param tag: In case you only to write specific keys, can be single string or list of strings
+        :param text_file: Input text file
+        :param header: List, column headers -- If None, headers will be column index
+        :param is_loop: Boolean, if False, all data will be printed on the same line as the '_rln' parameter name
+        :return: None
+        """
+        self[tag]= pandas.read_csv(
+          text_file,
+          delim_whitespace=True, 
+          skiprows=1, 
+          header=None
+          )
+          # skiprows: If not specified, leading comment line will be used to define columns
+
+        # If None, headers will be column index (which might be easier than '_rlnMicrographShiftX'.)
+        if header : self[tag].columns= header
+        
+        # Without the following, the value(s) will get printed on the same line as '_rln' parameter name
+        self.line_dict[tag]= {'is_loop': is_loop}
+        
+        """
+        TODO: Add to line_dict:
+          block
+          header  
+        Can still write to a file with only line_dict['is_loop'] though
+        """
+        
+def create_formatted_data_frame(data_frame, is_loop):
+    """
+    Format the data frame with ints and floats right aligned and the rest left aligned.
+    :data_frame: Data frame to format
+    :is_loop: If the data frame represents a loop or not
+    :return: formatted data frame
+    """
+    out_fmt = []
+    if is_loop:
+        current_data_frame = data_frame.copy()
+        for column_name in current_data_frame:
+            dtype = current_data_frame[column_name].dtypes
+            if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
+                # Get the maximum length of characters before the comma for good alignment
+                length = max(map(len, map(str, map(int, current_data_frame[column_name]))))
+                align = ' '
+                if np.issubdtype(dtype, np.floating):
+                    formatter = '.6f'
+                    conversion_func = float
+                    # In float fmt, the number before the dot includes all characters
+                    length += 7
+                else:
+                    formatter = 'd'
+                    conversion_func = int
+                # Add an extra whitespace before numbers for better readability
+                length += 1
+            else:
+                align = ' <'
+                length = max(map(len, map(str, current_data_frame[column_name])))
+                formatter = 's'
+                conversion_func = str
+
+            out_format = f"{{:{align}{length}{formatter}}}"
+            out_fmt.append((out_format, conversion_func))
+    else:
+        if data_frame.shape[0] != 1:
+            raise InvalidDataFrameFormatException(f"For no-loop dataframe the first dimension must be 1 but it is is {data_frame.shape[0]}")
+        # Aligned the left column to the left and the right column to the right
+        current_data_frame = data_frame.T.copy()
+        length_index = max(map(len, map(str, current_data_frame.index)))
+        length_data = max(map(len, map(str, current_data_frame.iloc[:, 0])))
+        out_fmt = [
+            (f"{{:<{length_index+2}s}}", str),
+            (f"{{: >{length_data}s}}", str),
+            ]
+
+    output = []
+    # Remove the header labels for an aligned to_string
+    current_data_frame.columns = ['' for _ in current_data_frame.columns]
+    for line in current_data_frame \
+            .to_string(header=True, index=not is_loop, na_rep='<NA>') \
+            .splitlines():
+        if not line.strip():
+            continue
+
+        output.append(
+            ' '.join([
+                out_fmt[idx][0].format(out_fmt[idx][1](entry))
+                for idx, entry
+                in enumerate(line.split())
+                ])
+            )
+    return '\n'.join(output)
 
 def sphire_header_magic(tag, special_keys=None):
     """
