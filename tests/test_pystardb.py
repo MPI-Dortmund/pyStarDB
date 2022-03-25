@@ -10,29 +10,19 @@ import tempfile
 class MyTestCase(unittest.TestCase):
 
     def test_file_is_written_loop_notag(self):
-        try:
-            os.remove("name.star")
-        except FileNotFoundError:
-            pass
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            fname = os.path.join(tmpdirname,'name.star')
+            a = pd.DataFrame([[0, 1], [2, 3]], columns=['col1', 'col2'])
+            b = pystar.StarFile(fname)
+            b.update('', a, True)
+            b.write_star_file()
+            exists = os.path.exists(fname)
 
-        a = pd.DataFrame([[0, 1], [2, 3]], columns=['col1', 'col2'])
-        b = pystar.StarFile('name.star')
-        b.update('', a, True)
-        b.write_star_file()
-        exists = os.path.exists('name.star')
-        os.remove("name.star")
-
-        self.assertTrue(exists,"File (loop) was not written")
+            self.assertTrue(exists,"File (loop) was not written")
 
     def test_file_is_written_no_loop_notag(self):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-
-            try:
-                os.remove(os.path.join(tmpdirname,"name.star"))
-            except FileNotFoundError:
-                pass
-
             a = pd.DataFrame([[0, 1], [2, 3]], columns=['col1', 'col2'])
             b = pystar.StarFile(os.path.join(tmpdirname,"name.star"))
             b.update('', a, False)
@@ -43,37 +33,26 @@ class MyTestCase(unittest.TestCase):
 
     def test_create_and_read(self):
 
-        try:
-            os.remove("name.star")
-        except FileNotFoundError:
-            pass
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            fname = os.path.join(tmpdirname,'name.star')
 
-        a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
-        b = pystar.StarFile('name.star')
-        b.update('', a, True)
-        b.write_star_file()
+            a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
+            b = pystar.StarFile(fname)
+            b.update('', a, True)
+            b.write_star_file()
 
-        c = pystar.StarFile('name.star')
+            c = pystar.StarFile(fname)
 
-        is_equal_col1 = a['_col1'].equals(c['']['_col1'])
-        is_equal_col2 = a['_col2'].equals(c['']['_col2'])
+            is_equal_col1 = a['_col1'].equals(c['']['_col1'])
+            is_equal_col2 = a['_col2'].equals(c['']['_col2'])
 
-        try:
-            os.remove("name.star")
-        except FileNotFoundError:
-            pass
-
-        self.assertTrue(is_equal_col1 and is_equal_col2,"Write / Read test failed")
+            self.assertTrue(is_equal_col1 and is_equal_col2,"Write / Read test failed")
 
 
 
     #Test to fix the tag bug
     def test_create_and_read_tag(self):
 
-        try:
-            os.remove("name.star")
-        except FileNotFoundError:
-            pass
         with tempfile.TemporaryDirectory() as tmpdirname:
 
             a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
@@ -92,10 +71,6 @@ class MyTestCase(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             fname= os.path.join(tmpdirname,"name.star")
-            try:
-                os.remove(fname)
-            except FileNotFoundError:
-                pass
 
             a = pd.DataFrame([[0, 1], [2, 3]], columns=['_col1', '_col2'])
             a2 = pd.DataFrame([[4, 5], [6, 7]], columns=['_col1', '_col2'])
