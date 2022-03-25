@@ -579,6 +579,8 @@ def create_formatted_data_frame(data_frame, is_loop):
             out_format = f"{{:{align}{length}{formatter}}}"
             out_fmt.append((out_format, conversion_func))
     else:
+        if data_frame.shape[0] != 1:
+            raise InvalidDataFrameFormatException(f"For no-loop dataframe the first dimension must be 1 but it is is {data_frame.shape[0]}")
         # Aligned the left column to the left and the right column to the right
         current_data_frame = data_frame.T.copy()
         length_index = max(map(len, map(str, current_data_frame.index)))
