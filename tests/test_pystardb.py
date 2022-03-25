@@ -20,7 +20,7 @@ class MyTestCase(unittest.TestCase):
 
             self.assertTrue(exists,"File (loop) was not written")
 
-    def test_file_is_written_no_loop_notag_expect_exception(self):
+    def test_file_is_written_no_loop_notag_expect_invalidformat(self):
 
         with self.assertRaises(pystar.InvalidDataFrameFormatException):
             with tempfile.TemporaryDirectory() as tmpdirname:
