@@ -35,6 +35,8 @@ import numpy as np
 Base Class for Starfile format. Will be able to handle data
 """
 
+class InvalidDataFrameFormatException(Exception):
+    pass
 
 class StarFile(dict):
     """
