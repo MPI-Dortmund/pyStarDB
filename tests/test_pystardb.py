@@ -22,11 +22,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_file_is_written_no_loop_notag_expect_exception(self):
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            a = pd.DataFrame([[0, 1], [2, 3]], columns=['col1','col2'])
-            b = pystar.StarFile(os.path.join(tmpdirname,"name.star"))
-            b.update('', a, False)
-            self.assertRaises(pystar.InvalidDataFrameFormatException, b.write_star_file())
+        with self.assertRaises(pystar.InvalidDataFrameFormatException):
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                a = pd.DataFrame([[0, 1], [2, 3]], columns=['col1','col2'])
+                b = pystar.StarFile(os.path.join(tmpdirname,"name.star"))
+                b.update('', a, False)
+                b.write_star_file()
 
 
     def test_file_is_written_no_loop_notag(self):
