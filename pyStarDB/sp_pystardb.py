@@ -490,8 +490,6 @@ class StarFile(dict):
 
             df = self[tag]
 
-            # print(idx, tag, df)
-
             try:
                 is_loop = self.line_dict[tag]['is_loop']
             except:
@@ -551,61 +549,87 @@ def create_formatted_data_frame(data_frame, is_loop):
     :is_loop: If the data frame represents a loop or not
     :return: formatted data frame
     """
+    
     out_fmt = []
     if is_loop:
         current_data_frame = data_frame.copy()
-        for column_name in current_data_frame:
-            dtype = current_data_frame[column_name].dtypes
-            if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
-                # Get the maximum length of characters before the comma for good alignment
-                length = max(map(len, map(str, map(int, current_data_frame[column_name]))))
-                align = ' '
-                if np.issubdtype(dtype, np.floating):
-                    formatter = '.6f'
-                    conversion_func = float
-                    # In float fmt, the number before the dot includes all characters
-                    length += 7
+        ##print('current_data_frame', current_data_frame, 'empty', current_data_frame.empty )
+        ##exit()
+        
+        if not current_data_frame.empty:
+            for column_name in current_data_frame:
+                dtype = current_data_frame[column_name].dtypes
+                if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
+                    # Get the maximum length of characters before the comma for good alignment
+                    try:
+                        length = max( map( len, map( str, map( int, current_data_frame[column_name]) ) ) )
+                    
+                    # Trap for NaN (https://www.statology.org/pandas-replace-nan-with-string/)
+                    except ValueError:
+                        length = max( map( len, map( str, current_data_frame[column_name].fillna('<NA>') ) ) )
+                    
+                    align = ' '
+                    if np.issubdtype(dtype, np.floating):
+                        formatter = '.6f'
+                        conversion_func = float
+                        # In float fmt, the number before the dot includes all characters
+                        length += 7
+                    else:
+                        formatter = 'd'
+                        conversion_func = int
+                    
+                    # Add an extra whitespace before numbers for better readability
+                    length += 1
                 else:
-                    formatter = 'd'
-                    conversion_func = int
-                # Add an extra whitespace before numbers for better readability
-                length += 1
-            else:
-                align = ' <'
-                length = max(map(len, map(str, current_data_frame[column_name])))
-                formatter = 's'
-                conversion_func = str
+                    align = ' <'
+                    length = max(map(len, map(str, current_data_frame[column_name])))
+                    formatter = 's'
+                    conversion_func = str
 
-            out_format = f"{{:{align}{length}{formatter}}}"
-            out_fmt.append((out_format, conversion_func))
+                out_format = f"{{:{align}{length}{formatter}}}"
+                out_fmt.append((out_format, conversion_func))
     else:
-        if data_frame.shape[0] != 1:
-            raise InvalidDataFrameFormatException(f"For no-loop dataframe the first dimension must be 1 but it is is {data_frame.shape[0]}")
-        # Aligned the left column to the left and the right column to the right
-        current_data_frame = data_frame.T.copy()
-        length_index = max(map(len, map(str, current_data_frame.index)))
-        length_data = max(map(len, map(str, current_data_frame.iloc[:, 0])))
-        out_fmt = [
-            (f"{{:<{length_index+2}s}}", str),
-            (f"{{: >{length_data}s}}", str),
-            ]
-
+        current_data_frame= data_frame.T.copy()
+        #print('current_data_frame', current_data_frame, 'empty', current_data_frame.empty )
+        if data_frame.shape[0] == 1:
+            # Aligned the left column to the left and the right column to the right
+            ###current_data_frame = data_frame.T.copy()
+            length_index = max(map(len, map(str, current_data_frame.index)))
+            length_data = max(map(len, map(str, current_data_frame.iloc[:, 0])))
+            out_fmt = [
+                (f"{{:<{length_index+2}s}}", str),
+                (f"{{: >{length_data}s}}", str),
+                ]
+        #if data_frame.shape[0] != 1:  #else:  #
+            #raise InvalidDataFrameFormatException(f"For no-loop dataframe the first dimension must be 1 but it is is {data_frame.shape[0]}")
+        
     output = []
-    # Remove the header labels for an aligned to_string
-    current_data_frame.columns = ['' for _ in current_data_frame.columns]
-    for line in current_data_frame \
-            .to_string(header=True, index=not is_loop, na_rep='<NA>') \
-            .splitlines():
-        if not line.strip():
-            continue
+    
+    if not current_data_frame.empty:
+        # Remove the header labels for an aligned to_string
+        current_data_frame.columns = ['' for _ in current_data_frame.columns]
+        for line in current_data_frame \
+                .to_string(header=True, index=not is_loop, na_rep='<NA>') \
+                .splitlines():
+            if not line.strip():
+                continue
 
-        output.append(
-            ' '.join([
-                out_fmt[idx][0].format(out_fmt[idx][1](entry))
-                for idx, entry
-                in enumerate(line.split())
-                ])
-            )
+            newline= ''
+            for idx, entry in enumerate( line.split() ):
+                dformat= out_fmt[idx][0]
+                dtype= out_fmt[idx][1]
+
+                # Trap for <NA>
+                try:
+                    string= dformat.format( dtype(entry) )
+                except ValueError:
+                    length= len( dformat.format(0) )
+                    string= entry.ljust(length)
+                
+                newline+= string + ' '
+            
+            output.append(newline)
+    
     return '\n'.join(output)
 
 def sphire_header_magic(tag, special_keys=None):
