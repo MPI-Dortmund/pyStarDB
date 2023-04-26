@@ -41,6 +41,12 @@ class MyTestCase(unittest.TestCase):
 
             self.assertTrue(exists,"File (no-loop) was not written")
 
+
+    def test_read_new_cbox(self):
+        starpath = os.path.join(os.path.dirname(__file__), '../resources/TcdA1-0155_frames_sum.cbox')
+        a = pystar.StarFile(starpath)
+        self.assertTrue('cryolo' in a)
+
     def test_create_and_read(self):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -52,6 +58,7 @@ class MyTestCase(unittest.TestCase):
             b.write_star_file()
 
             c = pystar.StarFile(fname)
+            print(c)
 
             is_equal_col1 = a['_col1'].equals(c['']['_col1'])
             is_equal_col2 = a['_col2'].equals(c['']['_col2'])

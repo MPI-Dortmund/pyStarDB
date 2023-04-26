@@ -246,8 +246,8 @@ class StarFile(dict):
             skip_blank_lines=False,
             header=None,
             delim_whitespace=True,
-            squeeze=True,
         )
+        header_names = header_names.squeeze("columns")
 
         self.star_content.seek(0)
         return pandas.read_csv(
