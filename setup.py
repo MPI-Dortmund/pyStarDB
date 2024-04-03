@@ -5,8 +5,8 @@ import setuptools
 
 setuptools.setup(
     name= "pyStarDB",
-    version= "0.4.2",
-    author="Adnan Ali, Markus Stabrin",
+    version= "0.4.3",
+    author="Adnan Ali, Markus Stabrin, Thorsten Wagner",
     description="Star file python Package",
     license = "MIT",
     url="https://github.com/MPI-Dortmund/pyStarDB.git",
