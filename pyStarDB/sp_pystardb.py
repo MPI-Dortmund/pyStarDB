@@ -245,7 +245,8 @@ class StarFile(dict):
             nrows=line_dict['header'][1] - line_dict['header'][0] + 1,
             skip_blank_lines=False,
             header=None,
-            delim_whitespace=True,
+            sep='\s+',
+            #delim_whitespace=True,
         )
         header_names = header_names.squeeze("columns")
 
@@ -258,7 +259,8 @@ class StarFile(dict):
             nrows=line_dict['content'][1] - line_dict['content'][0] + 1,
             skip_blank_lines=False,
             header=None,
-            delim_whitespace=True,
+            sep='\s+',
+            #delim_whitespace=True,
         )
 
     def read_without_loop(self, line_dict:dict):
