@@ -280,7 +280,8 @@ class StarFile(dict):
             nrows=line_dict['content'][1] - line_dict['content'][0] + 1,
             skip_blank_lines=False,
             header=None,
-            delim_whitespace=True,
+            sep='\s+',
+            #delim_whitespace=True,
         ).transpose()
 
     # Never forget the concept of Recursion otherwise you will be doomed
@@ -525,7 +526,8 @@ class StarFile(dict):
         """
         self[tag]= pandas.read_csv(
           text_file,
-          delim_whitespace=True, 
+          sep='\s+',
+          #delim_whitespace=True,
           skiprows=1, 
           header=None
           )
